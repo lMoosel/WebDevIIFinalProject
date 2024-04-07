@@ -4,7 +4,7 @@ export function HomeScreen(props) {
     
     return (
             <>
-                <button onClick={() => props.toggleHomeScreen()}>Go to Stats</button>
+                <button id="home-screen-button" onClick={() => props.toggleHomeScreen()}>Go to Stats</button>
             </>
     )
     
