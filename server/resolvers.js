@@ -2,9 +2,10 @@ import { GraphQLError } from "graphql";
 import { v4 as uuid } from "uuid";
 import redis from "redis";
 import { ObjectId } from "mongodb";
-import moment from "moment";
+//import moment from "moment";
+import axios from "axios";
 import { users as usersCollection } from "./config/mongoCollections.js";
-
+import { getAuthUrl,codeForToken } from "./spotify.js";
 const client = redis.createClient();
 await client.connect();
 
@@ -163,6 +164,27 @@ const validateArgsString = (args) => {
 };
 
 export const resolvers = {
-  Query: {},
-  Mutation: {},
+  Query: {
+    getSpotifyAuthUrl: () => {
+        return getAuthUrl();
+    }
+  },
+  Mutation: {
+    exchangeCodeForSpotifyToken: async (_, { code }) => {
+      const options = codeForToken(code);
+      try {
+        const response = await axios.post(options.url, options.form.toString(), {
+        headers: options.headers
+        });
+        return {
+          accessToken: response.data.access_token,
+          refreshToken: response.data.refresh_token,
+          expiresIn: response.data.expires_in
+        };
+      } catch (error) {
+        console.log(error)
+        throw new Error('Failed to exchange code for tokens');
+      }
+    }
+  }
 };
