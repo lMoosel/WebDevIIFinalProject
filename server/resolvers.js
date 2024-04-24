@@ -177,8 +177,8 @@ export const resolvers = {
         headers: options.headers
         });
         if (response.status === 200) {
-          await addToCache('refresh_token',response.data.refresh_token);
-          await addToCache('access_token',response.data.access_token,3600);
+          //await addToCache('refresh_token',response.data.refresh_token);
+          //await addToCache('access_token',response.data.access_token,3600);
           return {
             access_token: response.data.access_token,
             token_type: response.data.token_type,
@@ -198,7 +198,7 @@ export const resolvers = {
         headers: options.headers
         });
         if (response.status === 200) {
-          await addToCache('access_token',response.data.access_token,3600);
+          //await addToCache('access_token',response.data.access_token,3600);
           return {
             access_token: response.data.access_token,
             token_type: response.data.token_type,
