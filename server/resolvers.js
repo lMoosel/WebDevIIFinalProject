@@ -5,7 +5,7 @@ import { ObjectId } from "mongodb";
 //import moment from "moment";
 import axios from "axios";
 import { users as usersCollection } from "./config/mongoCollections.js";
-import { getAuthUrl,codeForToken } from "./spotify.js";
+import { getAuthUrl,codeForToken, refreshForToken } from "./spotify.js";
 const client = redis.createClient();
 await client.connect();
 
@@ -170,21 +170,48 @@ export const resolvers = {
     }
   },
   Mutation: {
-    exchangeCodeForSpotifyToken: async (_, { code }) => {
+    exchangeCode: async (_, { code }) => {
       const options = codeForToken(code);
       try {
         const response = await axios.post(options.url, options.form.toString(), {
         headers: options.headers
         });
-        return {
-          accessToken: response.data.access_token,
-          refreshToken: response.data.refresh_token,
-          expiresIn: response.data.expires_in
-        };
+        if (response.status === 200) {
+          await addToCache('refresh_token',response.data.refresh_token);
+          await addToCache('access_token',response.data.access_token,3600);
+          return {
+            access_token: response.data.access_token,
+            token_type: response.data.token_type,
+            refresh_token: response.data.refresh_token
+          };
+        } else {
+          throw new GraphQLError('Request completed but status not OK:', response.status);
+        }
+      } catch (error) {
+        throw new GraphQLError('Failed to exchange code for tokens', error);
+      }
+    },
+    exchangeRefreshToken: async (_, { refresh_token }) => {
+      const options = refreshForToken(refresh_token);
+      try {
+        const response = await axios.post(options.url, options.form.toString(), {
+        headers: options.headers
+        });
+        if (response.status === 200) {
+          await addToCache('access_token',response.data.access_token,3600);
+          return {
+            access_token: response.data.access_token,
+            token_type: response.data.token_type,
+            refresh_token: response.data.refresh_token
+          }
+        } else {
+          throw new GraphQLError('Request completed but status not OK:', response.status);
+        }
       } catch (error) {
         console.log(error)
-        throw new Error('Failed to exchange code for tokens');
+        throw new GraphQLError('Failed to exchange refresh_token for new tokens', error);
       }
     }
   }
 };
+

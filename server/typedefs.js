@@ -4,12 +4,13 @@ type Query {
 }
 
 type Mutation {
-    exchangeCodeForSpotifyToken(code: String!): SpotifyAuthResponse
+    exchangeCode(code: String!): SpotifyAuthResponse
+    exchangeRefreshToken(refresh_token: String!) : SpotifyAuthResponse
 }
 
 type SpotifyAuthResponse {
-    accessToken: String
-    refreshToken: String
-    expiresIn: Int
+    access_token: String
+    token_type: String
+    refresh_token: String
 }
 `;

@@ -43,5 +43,23 @@ function codeForToken(code) {
     };
     return authOptions;
 }
+function refreshForToken(refresh_token) {
+    const clientId = process.env.SPOTIFY_CLIENT_ID;
+    const clientSecret = process.env.SPOTIFY_CLIENT_SECRET;
+    const params = new URLSearchParams({
+        refresh_token: refresh_token,
+        grant_type: 'refresh_token'
+    });
+    const authOptions = {
+        url: 'https://accounts.spotify.com/api/token',
+        form: params,
+        headers: {
+            'content-type': 'application/x-www-form-urlencoded',
+            'Authorization': 'Basic ' + Buffer.from(`${clientId}:${clientSecret}`).toString('base64')
+        },
+        json: true
+    };
+    return authOptions;
+}
 
-export {getAuthUrl, codeForToken};
+export {getAuthUrl, codeForToken, refreshForToken};
