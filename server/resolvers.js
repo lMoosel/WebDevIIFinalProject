@@ -6,6 +6,7 @@ import { ObjectId } from "mongodb";
 import axios from "axios";
 import { users as usersCollection } from "./config/mongoCollections.js";
 import { getAuthUrl,codeForToken, refreshForToken } from "./spotify.js";
+import bcrypt from 'bcrypt';
 const client = redis.createClient();
 await client.connect();
 
@@ -134,7 +135,49 @@ const validateDate = (date, cmpDate = null) => {
     });
   }
 };
+let isValidEmail = function (email) {
+  // Based on https://help.xmatters.com/ondemand/trial/valid_email_format.htm
+  if (!email.includes("@")) return false;
+  let s = email.split("@");
+  if (s.length != 2) return false;
+  let [prefix, domain] = s;
+  if (!prefix.length || !domain.length) return false;
 
+  for (let i = 0; i < prefix.length; i++) {
+      if (
+          charIsLowercase(prefix[i])
+          ||
+          charIsNumber(prefix[i])
+      ) {
+          continue;
+      } else if ("_.-".includes(prefix[i])) {
+          if (!i) return false;
+          if (i == prefix.length - 1) return false;
+          if ("_.-".includes(prefix[i - 1])) return false;
+          continue;
+      } else {
+          return false;
+      }
+  }
+
+  let idx = -1;
+  for (let i = domain.length - 1; i >= 0; i--) {
+      if (domain[i] == ".") {
+          idx = i;
+          break;
+      }
+  }
+  if (idx == -1 || idx == 0 || idx == domain.length - 1) return false;
+  let tld = domain.substring(idx + 1);
+  let site = domain.substring(0, idx - 1);
+  for (let i = 0; i < site.length; i++) {
+      if (!(
+          charIsLowercase(site[i]) || charIsNumber(site[i]) || site[i] == "-"
+      )) { return false }
+  }
+  if (tld.length < 2) return false;
+  return true;
+}
 const validateArgsString = (args) => {
   // Check for empty strings
   for (const key of Object.keys(args)) {
@@ -162,7 +205,25 @@ const validateArgsString = (args) => {
     }
   }
 };
-
+function validatePassword(password) {
+  if (password.length < 8) {
+      throw 'Password must be at least 8 characters long.';
+  }
+  if (!/[A-Z]/.test(password)) {
+      throw 'Password must contain at least one uppercase letter.';
+  }
+  if (!/[0-9]/.test(password)) {
+      throw 'Password must contain at least one number.';
+  }
+  if (!/[!@#$%^&*(),.?":{}|<>]/.test(password)) {
+      throw 'Password must contain at least one special character.';
+  }
+}
+function isValidId(id) {
+  if (!id) throw 'No id given';
+  if (typeof id !== 'string') throw 'Id is not a string';
+  if (!ObjectId.isValid(id.trim())) throw 'Id is not valid';
+}
 export const resolvers = {
   Query: {
     getSpotifyAuthUrl: () => {
@@ -170,39 +231,90 @@ export const resolvers = {
     }
   },
   Mutation: {
-    exchangeCode: async (_, { code }) => {
+    generateRefreshTokenFromCode: async (_, { _id, code }) => {
       const options = codeForToken(code);
       try {
+        isValidId(_id);
+        const users = await usersCollection();
+        const user = await users.findOne({ _id: new ObjectId(_id) });
+        if (!user) {
+          throw 'Could not find user';
+        }
         const response = await axios.post(options.url, options.form.toString(), {
         headers: options.headers
         });
         if (response.status === 200) {
-          //await addToCache('refresh_token',response.data.refresh_token);
-          //await addToCache('access_token',response.data.access_token,3600);
+          await users.updateOne(
+            { _id: new ObjectId(_id) },
+            {
+            $set: {
+                refresh_token:  response.data.refresh_token,
+            },
+            }
+          );
+          addToCache(`access_token:${_id}`,response.data.access_token,3600);
           return {
-            access_token: response.data.access_token,
-            token_type: response.data.token_type,
-            refresh_token: response.data.refresh_token
+            _id: user._id,
+            email: user.email,
+            access_token: response.data.access_token
           };
         } else {
           throw new GraphQLError('Request completed but status not OK:', response.status);
         }
       } catch (error) {
+        console.log(error)
         throw new GraphQLError('Failed to exchange code for tokens', error);
       }
     },
-    exchangeRefreshToken: async (_, { refresh_token }) => {
-      const options = refreshForToken(refresh_token);
+    createUser: async (_, { email, password }) => {
+      try{
+        //TODO make sure email is not dup
+        validateArgsString([email,password]);
+        validatePassword(password);
+        isValidEmail(email);
+        email = email.trim();
+        password = password.trim();
+        const saltRounds = 16;
+        const hashPass = await bcrypt.hash(password, saltRounds);
+        let newUser = {
+          _id: new ObjectId(),
+          email: email, 
+          password: hashPass,
+          refresh_token: null
+        };
+        let record = await insertRecord(usersCollection,newUser._id.toString(),newUser);//Could change the key late idc
+        return {
+          _id: record.id,
+          email: record.email,
+          access_token: null
+        }
+      }catch(error){
+        throw new GraphQLError(error)
+      }
+      
+    },
+    generateAccessToken: async (_, { _id}) => { 
       try {
+        isValidId(_id);
+        const users = await usersCollection();
+        const user = await users.findOne({ _id: new ObjectId(_id) });
+        if (!user) {
+          throw 'Could not find user';
+        }
+        if(!user.refresh_token){
+          throw "User does not have a refresh token"
+        }
+        const refresh_token = user.refresh_token;
+        const options = refreshForToken(refresh_token);
         const response = await axios.post(options.url, options.form.toString(), {
         headers: options.headers
         });
         if (response.status === 200) {
-          //await addToCache('access_token',response.data.access_token,3600);
+          addToCache(`access_token:${_id}`,response.data.access_token,3600);
           return {
-            access_token: response.data.access_token,
-            token_type: response.data.token_type,
-            refresh_token: response.data.refresh_token
+            _id: user._id,
+            email: user.email,
+            access_token: response.data.access_token
           }
         } else {
           throw new GraphQLError('Request completed but status not OK:', response.status);

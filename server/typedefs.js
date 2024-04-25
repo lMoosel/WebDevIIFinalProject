@@ -1,16 +1,19 @@
 export const typeDefs = `#graphql
 type Query {
     getSpotifyAuthUrl: String
+    getUser(_id: String!): User
 }
 
 type Mutation {
-    exchangeCode(code: String!): SpotifyAuthResponse
-    exchangeRefreshToken(refresh_token: String!) : SpotifyAuthResponse
+    createUser(email: String!, password: String!): User
+    generateRefreshTokenFromCode(_id: String!, code: String!): User
+    generateAccessToken(_id: String!) : User
 }
 
-type SpotifyAuthResponse {
+type User {
+    _id: String!
+    email: String!
     access_token: String
-    token_type: String
-    refresh_token: String
 }
 `;
+
