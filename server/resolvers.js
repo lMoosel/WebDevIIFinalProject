@@ -118,7 +118,12 @@ const insertRecord = async (collection, key, record) => {
 
   return newRecord;
 };
-
+let charIsLowercase = function (c) {
+  return c >= "a" && c <= "z";
+}
+let charIsNumber = function (c) {
+  return c >= "0" && c <= "9";
+}
 const validateDate = (date, cmpDate = null) => {
   const formats = ["MM/DD/YYYY", "MM/D/YYYY", "M/DD/YYYY", "M/D/YYYY"];
   if (!moment(date, formats, true).isValid()) {
@@ -207,38 +212,79 @@ const validateArgsString = (args) => {
 };
 function validatePassword(password) {
   if (password.length < 8) {
-      throw 'Password must be at least 8 characters long.';
+    throw new GraphQLError('Password must be at least 8 characters long.');
   }
   if (!/[A-Z]/.test(password)) {
-      throw 'Password must contain at least one uppercase letter.';
+    throw new GraphQLError('Password must contain at least one uppercase letter.');
   }
   if (!/[0-9]/.test(password)) {
-      throw 'Password must contain at least one number.';
+    throw new GraphQLError('Password must contain at least one number.');
   }
   if (!/[!@#$%^&*(),.?":{}|<>]/.test(password)) {
-      throw 'Password must contain at least one special character.';
+    throw new GraphQLError('Password must contain at least one special character.');
   }
 }
 function isValidId(id) {
-  if (!id) throw 'No id given';
-  if (typeof id !== 'string') throw 'Id is not a string';
-  if (!ObjectId.isValid(id.trim())) throw 'Id is not valid';
+  if (!id) throw new GraphQLError('No id given');
+  if (typeof id !== 'string') throw new GraphQLError('Id is not a string');
+  if (!ObjectId.isValid(id.trim())) throw new GraphQLError('Id is not valid');
 }
 export const resolvers = {
   Query: {
     getSpotifyAuthUrl: () => {
         return getAuthUrl();
+    },
+    getUser: async (_, { _id}) => {
+      try{
+        isValidId(_id)
+        const users = await usersCollection();
+        const user = await users.findOne({ _id: new ObjectId(_id) });
+        if (!user) {
+          throw new GraphQLError('Could not find user');
+        }
+        return{
+          _id: user._id.toString(),
+          email: user.email
+        }
+      }catch(error){
+        throw new GraphQLError(error);
+      }
+    },
+    validateUser: async (_, { email, password}) => {
+      try{
+        validateArgsString([email,password]);
+        validatePassword(password);
+        isValidEmail(email);
+        email = email.trim();
+        password = password.trim();
+        const users = await usersCollection();
+        const user = await users.findOne({ email: email });
+        if (!user) {
+          throw new GraphQLError('Either password or email is invalid');
+        }
+        const compare = await bcrypt.compare(password, user.password);
+        if (!compare) {
+          throw new GraphQLError('Either password or email is invalid');
+        }
+        return{
+          _id: user._id.toString(),
+          email: user.email
+        }
+      }catch(error){
+        throw new GraphQLError(error);
+      }
+      
     }
   },
   Mutation: {
-    generateRefreshTokenFromCode: async (_, { _id, code }) => {
+    authorizeSpotify: async (_, { _id, code }) => {
       const options = codeForToken(code);
       try {
         isValidId(_id);
         const users = await usersCollection();
         const user = await users.findOne({ _id: new ObjectId(_id) });
         if (!user) {
-          throw 'Could not find user';
+          throw new GraphQLError('Could not find user');
         }
         const response = await axios.post(options.url, options.form.toString(), {
         headers: options.headers
@@ -255,8 +301,7 @@ export const resolvers = {
           addToCache(`access_token:${_id}`,response.data.access_token,3600);
           return {
             _id: user._id,
-            email: user.email,
-            access_token: response.data.access_token
+            email: user.email
           };
         } else {
           throw new GraphQLError('Request completed but status not OK:', response.status);
@@ -264,6 +309,37 @@ export const resolvers = {
       } catch (error) {
         console.log(error)
         throw new GraphQLError('Failed to exchange code for tokens', error);
+      }
+    },
+    deauthorizeSpotify: async (_, { _id}) => {
+      try{
+        isValidId(_id);
+        const users = await usersCollection();
+        const user = await users.findOne({ _id: new ObjectId(_id) });
+        if (!user) {
+          throw new GraphQLError('Could not find user');
+        }
+        if(!user.refresh_token){
+          throw new GraphQLError('User is already deauthorized');
+        }
+        await users.updateOne(
+          { _id: new ObjectId(_id) },
+          {
+          $set: {
+              refresh_token:  null
+          },
+          }
+        );
+        const cache = await checkCache(`access_token:${_id}`);
+        if(cache){
+          await removeFromCache(`access_token:${_id}`)
+        }
+        return{
+          _id: _id,
+          email: user.email
+        }
+      }catch(error){
+        throw new GraphQLError(error)
       }
     },
     createUser: async (_, { email, password }) => {
@@ -286,23 +362,50 @@ export const resolvers = {
         return {
           _id: record.id,
           email: record.email,
-          access_token: null
         }
       }catch(error){
         throw new GraphQLError(error)
       }
       
     },
-    generateAccessToken: async (_, { _id}) => { 
-      try {
+    deleteUser: async (_, { _id }) => {
+      try{
         isValidId(_id);
         const users = await usersCollection();
         const user = await users.findOne({ _id: new ObjectId(_id) });
-        if (!user) {
-          throw 'Could not find user';
+        if(!user){
+          throw new GraphQLError("User does not exist");
         }
-        if(!user.refresh_token){
-          throw "User does not have a refresh token"
+        const userRemove = await users.findOneAndDelete({ _id: new ObjectId(_id) }, { returnDocument: 'after' });
+        if(!userRemove){
+          throw new GraphQLError("Could not remove");
+        }
+        const cache = await checkCache(`access_token:${_id}`);
+        if(cache){
+          await removeFromCache(`access_token:${_id}`)
+        }
+        return{
+          _id: _id,
+          email: user.email
+        }
+
+      }catch(error){
+        throw new GraphQLError(error);
+      }
+    }
+  },
+  User: {
+    access_token: async (parentValue) => {
+      try{
+        const cache = await checkCache(`access_token:${parentValue._id}`)
+        if(cache){
+          console.log(cache);
+          return cache;
+        }
+        const users = await usersCollection();
+        const user = await users.findOne({ _id: new ObjectId(parentValue._id) });
+        if(!user || !user.refresh_token){
+          return null;
         }
         const refresh_token = user.refresh_token;
         const options = refreshForToken(refresh_token);
@@ -310,19 +413,14 @@ export const resolvers = {
         headers: options.headers
         });
         if (response.status === 200) {
-          addToCache(`access_token:${_id}`,response.data.access_token,3600);
-          return {
-            _id: user._id,
-            email: user.email,
-            access_token: response.data.access_token
-          }
-        } else {
-          throw new GraphQLError('Request completed but status not OK:', response.status);
+          await addToCache(`access_token:${parentValue._id}`,response.data.access_token,3600);
+          return response.data.access_token;
         }
-      } catch (error) {
-        console.log(error)
-        throw new GraphQLError('Failed to exchange refresh_token for new tokens', error);
+        
+      }catch(error){
+        throw new GraphQLError(error);
       }
+      
     }
   }
 };
