@@ -229,6 +229,45 @@ function isValidId(id) {
   if (typeof id !== 'string') throw new GraphQLError('Id is not a string');
   if (!ObjectId.isValid(id.trim())) throw new GraphQLError('Id is not valid');
 }
+function verifyTimeRange(time_range) {
+  const validRanges = ['short_term', 'medium_term', 'long_term'];
+  if (!validRanges.includes(time_range)) {
+      throw new Error(`Expected one of ${validRanges.join(', ')}, but got ${time_range}.`);
+  }
+}
+function verifyOffset(offset) {
+  if (typeof offset !== 'number' || offset < 0) {
+      throw new Error(`The offset must be a non-negative integer.`);
+  }
+}
+function verifyLimit(limit) {
+  const maxLimit = 50; 
+  if (typeof limit !== 'number' || limit < 1 || limit > maxLimit) {
+      throw new Error(`The limit must be a number between 1 and ${maxLimit}.`);
+  }
+}
+
+const getAccessToken = async (_id) => {
+  isValidId(_id)
+  const cache = await checkCache(`access_token:${_id}`)
+  if(cache){
+    return cache;
+  }
+  const users = await usersCollection();
+  const user = await users.findOne({ _id: new ObjectId(_id) });
+  if(!user || !user.refresh_token){
+    return null;
+  }
+  const refresh_token = user.refresh_token;
+  const options = refreshForToken(refresh_token);
+  const response = await axios.post(options.url, options.form.toString(), {
+  headers: options.headers
+  });
+  if (response.status === 200) {
+    await addToCache(`access_token:${_id}`,response.data.access_token,3600);
+    return response.data.access_token;
+  }
+}
 export const resolvers = {
   Query: {
     getSpotifyAuthUrl: () => {
@@ -274,7 +313,69 @@ export const resolvers = {
         throw new GraphQLError(error);
       }
       
-    }
+    },
+    getTopArtists: async (_, { _id, time_range, limit, offset}) => {
+      try{
+        isValidId(_id);;
+        verifyLimit(limit);
+        verifyOffset(offset);
+        verifyTimeRange(time_range);
+        const access_token = await getAccessToken(_id);
+        if(!access_token){
+          throw new GraphQLError("Not authorized");
+        }
+        const params = new URLSearchParams({
+          limit: limit, 
+          offset: offset,
+          time_range: time_range 
+        });
+        const response = await axios({
+          method: 'get',
+          url: 'https://api.spotify.com/v1/me/top/artists',
+          headers: {
+            'Authorization': `Bearer ${access_token}`, 
+            'Content-Type': 'application/json'
+          },
+          params: params
+        });
+        
+        return response.data;
+      }catch(error){
+        throw new GraphQLError(error);
+      }
+
+    },
+    getTopTracks: async (_, { _id, time_range, limit, offset}) => {
+      try{
+        isValidId(_id);;
+        verifyLimit(limit);
+        verifyOffset(offset);
+        verifyTimeRange(time_range);
+        const access_token = await getAccessToken(_id);
+        if(!access_token){
+          throw new GraphQLError("Not authorized");
+        }
+        const params = new URLSearchParams({
+          limit: limit, 
+          offset: offset,
+          time_range: time_range 
+      });
+        const response = await axios({
+          method: 'get',
+          url: 'https://api.spotify.com/v1/me/top/tracks',
+          headers: {
+            'Authorization': `Bearer ${access_token}`, 
+            'Content-Type': 'application/json'
+          },
+          params: params
+        });
+        
+        return response.data;
+      }catch(error){
+        throw new GraphQLError(error);
+      }
+
+    },
   },
   Mutation: {
     authorizeSpotify: async (_, { _id, code }) => {
@@ -307,7 +408,6 @@ export const resolvers = {
           throw new GraphQLError('Request completed but status not OK:', response.status);
         }
       } catch (error) {
-        console.log(error)
         throw new GraphQLError('Failed to exchange code for tokens', error);
       }
     },
@@ -395,32 +495,13 @@ export const resolvers = {
     }
   },
   User: {
-    access_token: async (parentValue) => {
-      try{
-        const cache = await checkCache(`access_token:${parentValue._id}`)
-        if(cache){
-          console.log(cache);
-          return cache;
-        }
-        const users = await usersCollection();
-        const user = await users.findOne({ _id: new ObjectId(parentValue._id) });
-        if(!user || !user.refresh_token){
-          return null;
-        }
-        const refresh_token = user.refresh_token;
-        const options = refreshForToken(refresh_token);
-        const response = await axios.post(options.url, options.form.toString(), {
-        headers: options.headers
-        });
-        if (response.status === 200) {
-          await addToCache(`access_token:${parentValue._id}`,response.data.access_token,3600);
-          return response.data.access_token;
-        }
-        
-      }catch(error){
-        throw new GraphQLError(error);
+    authorized : async (parentValue) => {
+      const users = await usersCollection();
+      const user = await users.findOne({ _id: new ObjectId(parentValue._id) });
+      if(!user || !user.refresh_token){
+        return false;
       }
-      
+      return true;
     }
   }
 };

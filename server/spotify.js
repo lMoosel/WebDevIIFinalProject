@@ -8,7 +8,7 @@ var redirect_uri = 'http://localhost:5173/callback'
 //Generates an authentication URL that we will route the user to when they are trying to connect their spotify accounts
 function getAuthUrl() {
     const state = uuidv4()
-    const scope = 'user-read-private user-read-email';
+    const scope = 'user-read-private user-read-email user-top-read';
     const clientId = process.env.SPOTIFY_CLIENT_ID;
     const redirectUri = redirect_uri;
 
