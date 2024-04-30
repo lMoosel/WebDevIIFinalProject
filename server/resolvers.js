@@ -5,7 +5,6 @@ import { ObjectId } from "mongodb";
 //import moment from "moment";
 import axios from "axios";
 import { users as usersCollection } from "./config/mongoCollections.js";
-import { getAuthUrl,codeForToken, refreshForToken } from "./spotify.js";
 import bcrypt from 'bcrypt';
 const client = redis.createClient();
 await client.connect();
@@ -259,19 +258,64 @@ const getAccessToken = async (_id) => {
     return null;
   }
   const refresh_token = user.refresh_token;
-  const options = refreshForToken(refresh_token);
-  const response = await axios.post(options.url, options.form.toString(), {
-  headers: options.headers
+  const clientId = process.env.SPOTIFY_CLIENT_ID;
+  const clientSecret = process.env.SPOTIFY_CLIENT_SECRET;
+  const params = new URLSearchParams({
+    refresh_token: refresh_token,
+    grant_type: 'refresh_token'
   });
+  const options = {
+    url: 'https://accounts.spotify.com/api/token',
+    form: params,
+    headers: {
+      'content-type': 'application/x-www-form-urlencoded',
+      'Authorization': 'Basic ' + Buffer.from(`${clientId}:${clientSecret}`).toString('base64')
+    },
+    json: true
+  };
+  const response = await axios.post(options.url, options.form.toString(), {headers: options.headers});
   if (response.status === 200) {
     await addToCache(`access_token:${_id}`,response.data.access_token,3600);
     return response.data.access_token;
   }
 }
+
+const getAxiosCall = async (url, params, access_token) =>{
+  //Use this for get calls to the api 
+  try{
+    const response = await axios({
+      method: 'get',
+      url: url,
+      headers: {
+        'Authorization': `Bearer ${access_token}`, 
+        'Content-Type': 'application/json'
+      },
+      params: params
+    });
+    if (response.status === 200) {
+      return response.data;
+    }else{
+      throw new GraphQLError(response);
+    }
+  }catch(error){
+    throw new GraphQLError(error);
+  }
+}
 export const resolvers = {
   Query: {
     getSpotifyAuthUrl: () => {
-        return getAuthUrl();
+      const state = uuid()
+      const scope = 'user-read-private user-read-email user-top-read'; //This is important, change this if u want to use calls that need diff perms
+      const clientId = process.env.SPOTIFY_CLIENT_ID;
+      const redirectUri = process.env.REDIRECT_URI;
+      const params = new URLSearchParams({
+          response_type: 'code',
+          client_id: clientId,
+          scope: scope,
+          redirect_uri: redirectUri,
+          state: state
+      });
+      return `https://accounts.spotify.com/authorize?${params.toString()}`;
     },
     getUser: async (_, { _id}) => {
       try{
@@ -329,17 +373,8 @@ export const resolvers = {
           offset: offset,
           time_range: time_range 
         });
-        const response = await axios({
-          method: 'get',
-          url: 'https://api.spotify.com/v1/me/top/artists',
-          headers: {
-            'Authorization': `Bearer ${access_token}`, 
-            'Content-Type': 'application/json'
-          },
-          params: params
-        });
-        
-        return response.data;
+        const response = await getAxiosCall('https://api.spotify.com/v1/me/top/artists',params,access_token);
+        return response;
       }catch(error){
         throw new GraphQLError(error);
       }
@@ -359,18 +394,9 @@ export const resolvers = {
           limit: limit, 
           offset: offset,
           time_range: time_range 
-      });
-        const response = await axios({
-          method: 'get',
-          url: 'https://api.spotify.com/v1/me/top/tracks',
-          headers: {
-            'Authorization': `Bearer ${access_token}`, 
-            'Content-Type': 'application/json'
-          },
-          params: params
         });
-        
-        return response.data;
+        const response = await getAxiosCall('https://api.spotify.com/v1/me/top/tracks',params,access_token);
+        return response;
       }catch(error){
         throw new GraphQLError(error);
       }
@@ -379,8 +405,24 @@ export const resolvers = {
   },
   Mutation: {
     authorizeSpotify: async (_, { _id, code }) => {
-      const options = codeForToken(code);
       try {
+        const clientId = process.env.SPOTIFY_CLIENT_ID;
+        const clientSecret = process.env.SPOTIFY_CLIENT_SECRET;
+        const redirectUri = process.env.REDIRECT_URI;
+        const params = new URLSearchParams({
+          code: code,
+          redirect_uri: redirectUri,
+          grant_type: 'authorization_code'
+        });
+        const options = {
+          url: 'https://accounts.spotify.com/api/token',
+          form: params,
+          headers: {
+            'content-type': 'application/x-www-form-urlencoded',
+            'Authorization': 'Basic ' + Buffer.from(`${clientId}:${clientSecret}`).toString('base64')
+          },
+          json: true
+        };
         isValidId(_id);
         const users = await usersCollection();
         const user = await users.findOne({ _id: new ObjectId(_id) });
@@ -444,12 +486,18 @@ export const resolvers = {
     },
     createUser: async (_, { email, password }) => {
       try{
-        //TODO make sure email is not dup
         validateArgsString([email,password]);
         validatePassword(password);
         isValidEmail(email);
         email = email.trim();
         password = password.trim();
+        const users = await usersCollection();
+        const user = await users.findOne({
+          email: { $regex: new RegExp('^' + email + '$', 'i') },
+        });
+        if (user) {
+          throw new GraphQLError('Email address already taken');
+        }
         const saltRounds = 16;
         const hashPass = await bcrypt.hash(password, saltRounds);
         let newUser = {
@@ -498,7 +546,10 @@ export const resolvers = {
     authorized : async (parentValue) => {
       const users = await usersCollection();
       const user = await users.findOne({ _id: new ObjectId(parentValue._id) });
-      if(!user || !user.refresh_token){
+      if(!user){
+        return null;
+      }
+      if(!user.refresh_token){
         return false;
       }
       return true;
