@@ -5,6 +5,7 @@ type Query {
     validateUser(email: String!, password: String!): User
     getTopTracks(_id: String!, time_range: String!, offset: Int!, limit: Int!): TopTracks
     getTopArtists(_id: String!, time_range: String!, offset: Int!, limit: Int!): TopArtists
+    getSpotifyProfile(_id: String!): SpotifyProfile
 }
 
 type Mutation {
@@ -19,7 +20,28 @@ type User {
     email: String!
     authorized: Boolean
 }
-
+type SpotifyProfile {
+    country: String
+    display_name: String
+    email: String
+    explicit_content: ExplicitContent
+    external_urls: ExternalUrls
+    followers: Followers
+    href: String
+    id: String
+    images: [Image]
+    product: String
+    type: String
+    uri: String
+}
+type Followers {
+    href: String
+    total: Int
+}
+type ExplicitContent {
+    filter_enabled: Boolean
+    filter_locked: Boolean
+}
 type TopTracks {
     href: String!
     limit: Int!

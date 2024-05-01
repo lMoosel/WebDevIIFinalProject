@@ -44,6 +44,13 @@ const removeFromCache = async (key) => {
   await client.del(`${key}`);
 };
 
+const clearUserCache = async  (_id) => {
+  const keys = await client.lRange(_id, 0, -1);
+  for (const key of keys) {
+    await removeFromCache(key);
+  }
+  await removeFromCache(_id);
+}
 const getRecords = async (collection, key) => {
   let records = await checkCache(key);
 
@@ -275,25 +282,60 @@ const getAccessToken = async (_id) => {
   };
   const response = await axios.post(options.url, options.form.toString(), {headers: options.headers});
   if (response.status === 200) {
-    await addToCache(`access_token:${_id}`,response.data.access_token,3600);
+    await addToCache(`access_token:${_id}`, response.data.access_token, 3600);
     return response.data.access_token;
   }
 }
-
-const getAxiosCall = async (url, params, access_token) =>{
+const handleResponse = async (response,key,_id) =>{
+  const cache = await checkCache(key)
+  if(!response){
+    if(!cache){
+      throw new GraphQLError("Server did not properly cache the first query.");
+    }
+    return cache.data;
+  }
+  if(!cache){
+    await addToCache(key,response);
+    await client.rPush(_id,key)
+    return response.data;
+  }
+  if(cache.etag !== response.etag){//Hopefully this works
+    await addToCache(key,response);
+  }
+  return response.data;
+}
+const getAxiosCall = async (url, access_token, etag, params ) =>{
   //Use this for get calls to the api 
   try{
+    let headers = {
+      'Authorization': `Bearer ${access_token}`, 
+      'Content-Type': 'application/json'
+    };
+    if (etag) {
+      headers['If-None-Match'] = etag;
+    }
     const response = await axios({
       method: 'get',
       url: url,
-      headers: {
-        'Authorization': `Bearer ${access_token}`, 
-        'Content-Type': 'application/json'
-      },
-      params: params
+      headers: headers,
+      params: params,
+      validateStatus: function (status) {
+        return (status >= 200 && status < 300) || status === 304; // Resolve the promise for 304 status
+      }
     });
+    if (response.status === 304) {
+      console.log('Data is not modified. Using cached version.');
+      return null; 
+    }
     if (response.status === 200) {
-      return response.data;
+      console.log('Data fetched successfully.')
+      if(!response.headers.etag ){
+        console.log('ETag was not provided.');
+      }
+      return {
+        data: response.data,
+        etag: response.headers.etag 
+      };
     }else{
       throw new GraphQLError(response);
     }
@@ -301,6 +343,21 @@ const getAxiosCall = async (url, params, access_token) =>{
     throw new GraphQLError(error);
   }
 }
+const get = async (_id, key, url, params = null) =>{
+  isValidId(_id);
+  const access_token = await getAccessToken(_id);
+  if(!access_token){
+    throw new GraphQLError("Not authorized");
+  }
+  const cache = await checkCache(key);
+  let etag = null
+  if(cache){
+    etag = cache.etag;
+  }
+  const response = await getAxiosCall(url,access_token,etag,params);
+  const handledResponse = await handleResponse(response, key, _id);
+  return handledResponse;
+} 
 export const resolvers = {
   Query: {
     getSpotifyAuthUrl: () => {
@@ -358,22 +415,25 @@ export const resolvers = {
       }
       
     },
+    getSpotifyProfile: async (_, { _id}) =>{
+      try{
+        const response = await get(_id,`getSpotifyProfile:${_id}`,'https://api.spotify.com/v1/me');
+        return response;
+      }catch(error){
+        throw new GraphQLError(error);
+      }
+    },
     getTopArtists: async (_, { _id, time_range, limit, offset}) => {
       try{
-        isValidId(_id);;
         verifyLimit(limit);
         verifyOffset(offset);
         verifyTimeRange(time_range);
-        const access_token = await getAccessToken(_id);
-        if(!access_token){
-          throw new GraphQLError("Not authorized");
-        }
         const params = new URLSearchParams({
           limit: limit, 
           offset: offset,
           time_range: time_range 
         });
-        const response = await getAxiosCall('https://api.spotify.com/v1/me/top/artists',params,access_token);
+        const response = await get(_id,`getTopArtists:${_id}:${params.toString()}`,'https://api.spotify.com/v1/me/top/artists',params);
         return response;
       }catch(error){
         throw new GraphQLError(error);
@@ -382,20 +442,15 @@ export const resolvers = {
     },
     getTopTracks: async (_, { _id, time_range, limit, offset}) => {
       try{
-        isValidId(_id);;
         verifyLimit(limit);
         verifyOffset(offset);
         verifyTimeRange(time_range);
-        const access_token = await getAccessToken(_id);
-        if(!access_token){
-          throw new GraphQLError("Not authorized");
-        }
         const params = new URLSearchParams({
           limit: limit, 
           offset: offset,
           time_range: time_range 
         });
-        const response = await getAxiosCall('https://api.spotify.com/v1/me/top/tracks',params,access_token);
+        const response = await get(_id,`getTopTracks:${_id}:${params.toString()}`,'https://api.spotify.com/v1/me/top/tracks',params);
         return response;
       }catch(error){
         throw new GraphQLError(error);
@@ -441,7 +496,8 @@ export const resolvers = {
             },
             }
           );
-          addToCache(`access_token:${_id}`,response.data.access_token,3600);
+          await addToCache(`access_token:${_id}`, response.data.access_token, 3600);
+          await client.rPush(_id,`access_token:${_id}`)
           return {
             _id: user._id,
             email: user.email
@@ -450,7 +506,7 @@ export const resolvers = {
           throw new GraphQLError('Request completed but status not OK:', response.status);
         }
       } catch (error) {
-        throw new GraphQLError('Failed to exchange code for tokens', error);
+        throw new GraphQLError(error);
       }
     },
     deauthorizeSpotify: async (_, { _id}) => {
@@ -472,10 +528,7 @@ export const resolvers = {
           },
           }
         );
-        const cache = await checkCache(`access_token:${_id}`);
-        if(cache){
-          await removeFromCache(`access_token:${_id}`)
-        }
+        await clearUserCache(_id);
         return{
           _id: _id,
           email: user.email
@@ -506,7 +559,8 @@ export const resolvers = {
           password: hashPass,
           refresh_token: null
         };
-        let record = await insertRecord(usersCollection,newUser._id.toString(),newUser);//Could change the key late idc
+        let record = await insertRecord(usersCollection,`user:${newUser._id.toString()}`,newUser);//Could change the key late idc
+        await client.rPush(newUser._id.toString(),`user:${newUser._id}`)
         return {
           _id: record.id,
           email: record.email,
@@ -528,10 +582,7 @@ export const resolvers = {
         if(!userRemove){
           throw new GraphQLError("Could not remove");
         }
-        const cache = await checkCache(`access_token:${_id}`);
-        if(cache){
-          await removeFromCache(`access_token:${_id}`)
-        }
+        await clearUserCache(_id);
         return{
           _id: _id,
           email: user.email
