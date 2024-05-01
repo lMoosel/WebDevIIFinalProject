@@ -2,7 +2,7 @@
 
 cd server
 npm i
-npm start &
+docker compose up &
 
 cd ../my-react-app
 npm i
