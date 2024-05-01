@@ -1,0 +1,28 @@
+version: "3"
+
+services:
+ #MongoDb
+  mongodb:
+    container_name: mongo
+    image: mongo:latest
+    restart: always
+    volumes:
+      - mongodb:/data/db
+
+  redis:
+    image: redis:latest
+    container_name: redis
+
+  backend:
+    build: .
+    ports: 
+      - "4000:4000"
+    environment:
+      - PORT=4000
+      - DB_URL:mongodb://mongodb:27017
+    depends_on:
+      - mongodb
+      - redis
+
+volumes:
+  mongodb: {}

@@ -6,8 +6,18 @@ import { ObjectId } from "mongodb";
 import axios from "axios";
 import { users as usersCollection } from "./config/mongoCollections.js";
 import bcrypt from 'bcrypt';
-const client = redis.createClient();
-await client.connect();
+
+import { getCurrentSong, getFavoriteAlbums } from "./data/spotify.js";
+
+
+const DEBUG = true;
+
+let client = null
+
+if(!DEBUG){
+    client = redis.createClient();
+    await client.connect();
+}
 
 /**
  * Check if a value exists in the cache
