@@ -1,3 +1,4 @@
+import { GraphQLError } from "graphql";
 import { ObjectId } from "mongodb";
 
 let charIsLowercase = function (c) {
@@ -128,6 +129,10 @@ function verifyLimit(limit) {
         throw new Error(`The limit must be a number between 1 and ${maxLimit}.`);
     }
 }
-
+function verifyType(types) {
+  if (!Array.isArray(types) || types.length === 0 || types.length > 3 || !types.every(type => ["album", "track", "artist"].includes(type))) {
+    throw new GraphQLError('Most only be an array of "album", "track", "artist".');
+  } 
+}
   
-export {charIsLowercase, charIsNumber, validateDate, isValidEmail, validateArgsString, validatePassword, isValidId, verifyTimeRange, verifyOffset, verifyLimit}
+export {verifyType, charIsLowercase, charIsNumber, validateDate, isValidEmail, validateArgsString, validatePassword, isValidId, verifyTimeRange, verifyOffset, verifyLimit}
