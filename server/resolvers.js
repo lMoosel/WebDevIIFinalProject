@@ -7,6 +7,9 @@ import axios from "axios";
 import { users as usersCollection } from "./config/mongoCollections.js";
 import bcrypt from 'bcrypt';
 
+import { getCurrentSong, getFavoriteAlbums } from "./data/spotify.js";
+
+
 const DEBUG = true;
 
 let client = null
