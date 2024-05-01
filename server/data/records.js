@@ -1,4 +1,4 @@
-import {checkCache, addToCache, removeFromCache, clearUserCache} from "./data/cache.js";
+import {checkCache, addToCache, removeFromCache, clearUserCache} from "./cache.js";
 import { ObjectId } from "mongodb";
 
 const getRecords = async (collection, key) => {

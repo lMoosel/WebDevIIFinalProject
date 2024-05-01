@@ -6,7 +6,7 @@ import axios from "axios";
 import { users as usersCollection } from "./config/mongoCollections.js";
 import bcrypt from 'bcrypt';
 
-import {checkCache, addToCache, removeFromCache, clearUserCache} from "./data/cache.js";
+import {client, checkCache, addToCache, removeFromCache, clearUserCache} from "./data/cache.js";
 import {charIsLowercase, charIsNumber, validateDate, isValidEmail, validateArgsString, validatePassword, isValidId, verifyTimeRange, verifyOffset, verifyLimit} from "./helpers.js";
 import {getRecords, getRecordById, getRecordsByIds, insertRecord } from "./data/records.js";
 
@@ -136,7 +136,7 @@ export const resolvers = {
       try{
         isValidId(_id)
         const users = await usersCollection();
-        const user = await users.findOne({ _id: new ObjectId(_id) });
+        const user = await users.findOne({ _id: new ObjectId(_id)});
         if (!user) {
           throw new GraphQLError('Could not find user');
         }

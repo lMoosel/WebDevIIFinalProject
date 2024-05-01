@@ -1,3 +1,4 @@
+import { ObjectId } from "mongodb";
 import redis from "redis";
 
 const client = redis.createClient();
@@ -46,4 +47,4 @@ const clearUserCache = async  (_id) => {
   await removeFromCache(_id);
 }
 
-export {checkCache, addToCache, removeFromCache, clearUserCache}
+export {client, checkCache, addToCache, removeFromCache, clearUserCache}

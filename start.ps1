@@ -1,6 +1,7 @@
 cd server
 npm i
-start-process powershell.exe -ArgumentList "-Command docker compose up"
+#start-process powershell.exe -ArgumentList "-Command docker compose up"
+start-process powershell.exe -ArgumentList "-Command npm start"
 
 
 cd ../my-react-app
