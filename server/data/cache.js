@@ -31,7 +31,7 @@ const addToCache = async (key, value, exp) => {
   const data = JSON.stringify(value);
 
   if (exp === undefined) await client.set(`${key}`, data);
-  else await client.set(`${key}`, data, "EX", exp);
+  else await client.set(`${key}`, data, {EX: exp});
 };
 
 const removeFromCache = async (key) => {
