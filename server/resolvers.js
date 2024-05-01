@@ -7,8 +7,9 @@ import { users as usersCollection } from "./config/mongoCollections.js";
 import bcrypt from 'bcrypt';
 
 import {client, checkCache, addToCache, removeFromCache, clearUserCache} from "./data/cache.js";
-import {charIsLowercase, charIsNumber, validateDate, isValidEmail, validateArgsString, validatePassword, isValidId, verifyTimeRange, verifyOffset, verifyLimit} from "./helpers.js";
+import {verifyType, charIsLowercase, charIsNumber, validateDate, isValidEmail, validateArgsString, validatePassword, isValidId, verifyTimeRange, verifyOffset, verifyLimit} from "./helpers.js";
 import {getRecords, getRecordById, getRecordsByIds, insertRecord } from "./data/records.js";
+import { Graph } from "redis";
 
 const getAccessToken = async (_id) => {
   isValidId(_id)
@@ -43,7 +44,7 @@ const getAccessToken = async (_id) => {
     return response.data.access_token;
   }
 }
-const handleResponse = async (response,key,_id) =>{
+const handleResponse = async (response,key,_id,exp,hasParams) =>{
   const cache = await checkCache(key)
   if(!response){
     if(!cache){
@@ -52,12 +53,15 @@ const handleResponse = async (response,key,_id) =>{
     return cache.data;
   }
   if(!cache){
-    await addToCache(key,response);
-    await client.rPush(_id,key)
+    if(hasParams) {
+      await client.rPush(`spotify:${_id}`,key)
+    }
+    await addToCache(key,response,exp);
     return response.data;
   }
   if(cache.etag !== response.etag){//Hopefully this works
-    await addToCache(key,response);
+    await addToCache(key,response,exp);
+    
   }
   return response.data;
 }
@@ -77,12 +81,19 @@ const getAxiosCall = async (url, access_token, etag, params ) =>{
       headers: headers,
       params: params,
       validateStatus: function (status) {
-        return (status >= 200 && status < 300) || status === 304; // Resolve the promise for 304 status
+        return (status === 200 || status === 304 || status === 204); 
       }
     });
-    if (response.status === 304) {
+    if (response.status === 304) {//nothing changed
       console.log('Data is not modified. Using cached version.');
       return null; 
+    }
+    if (response.status === 204) {//no response
+      console.log("No response.")
+      return {
+        data: null,
+        etag: null
+      };
     }
     if (response.status === 200) {
       console.log('Data fetched successfully.')
@@ -94,25 +105,33 @@ const getAxiosCall = async (url, access_token, etag, params ) =>{
         etag: response.headers.etag 
       };
     }else{
-      throw new GraphQLError(response);
+      console.log(response)
+      throw new GraphQLError(response.data);
     }
   }catch(error){
     throw new GraphQLError(error);
   }
 }
-const get = async (_id, key, url, params = null) =>{
+const get = async (_id, key, exp, url, params = null) =>{
   isValidId(_id);
+  const cache = await checkCache(key);
   const access_token = await getAccessToken(_id);
   if(!access_token){
     throw new GraphQLError("Not authorized");
   }
-  const cache = await checkCache(key);
   let etag = null
-  if(cache){
+  if(cache){ //If we have stored it once and no etag
     etag = cache.etag;
+    if(!etag){
+      return cache.data
+    }
   }
   const response = await getAxiosCall(url,access_token,etag,params);
-  const handledResponse = await handleResponse(response, key, _id);
+  let hasParams = false;
+  if(params){
+    hasParams = true;
+  }
+  const handledResponse = await handleResponse(response, key, _id, exp,hasParams);
   return handledResponse;
 } 
 
@@ -120,7 +139,7 @@ export const resolvers = {
   Query: {
     getSpotifyAuthUrl: () => {
       const state = uuid()
-      const scope = 'user-read-private user-read-email user-top-read'; //This is important, change this if u want to use calls that need diff perms
+      const scope = 'user-read-private user-read-email user-top-read user-read-currently-playing' ; //This is important, change this if u want to use calls that need diff perms
       const clientId = process.env.SPOTIFY_CLIENT_ID;
       const redirectUri = process.env.REDIRECT_URI;
       const params = new URLSearchParams({
@@ -175,13 +194,13 @@ export const resolvers = {
     },
     getSpotifyProfile: async (_, { _id}) =>{
       try{
-        const response = await get(_id,`getSpotifyProfile:${_id}`,'https://api.spotify.com/v1/me');
+        const response = await get(_id,`getSpotifyProfile:${_id}`, 15*60, 'https://api.spotify.com/v1/me');
         return response;
       }catch(error){
         throw new GraphQLError(error);
       }
     },
-    getTopArtists: async (_, { _id, time_range, limit, offset}) => {
+    getSpotifyTopArtists: async (_, { _id, time_range, limit, offset}) => {
       try{
         verifyLimit(limit);
         verifyOffset(offset);
@@ -191,14 +210,14 @@ export const resolvers = {
           offset: offset,
           time_range: time_range 
         });
-        const response = await get(_id,`getTopArtists:${_id}:${params.toString()}`,'https://api.spotify.com/v1/me/top/artists',params);
+        const response = await get(_id,`getTopArtists:${_id}:${params.toString()}`, 60*60*24, 'https://api.spotify.com/v1/me/top/artists',params);
         return response;
       }catch(error){
         throw new GraphQLError(error);
       }
 
     },
-    getTopTracks: async (_, { _id, time_range, limit, offset}) => {
+    getSpotifyTopTracks: async (_, { _id, time_range, limit, offset}) => {
       try{
         verifyLimit(limit);
         verifyOffset(offset);
@@ -208,13 +227,64 @@ export const resolvers = {
           offset: offset,
           time_range: time_range 
         });
-        const response = await get(_id,`getTopTracks:${_id}:${params.toString()}`,'https://api.spotify.com/v1/me/top/tracks',params);
+        const response = await get(_id,`getTopTracks:${_id}:${params.toString()}`, 60*60*24, 'https://api.spotify.com/v1/me/top/tracks',params);
         return response;
       }catch(error){
         throw new GraphQLError(error);
       }
 
     },
+    getSpotifyArtist: async (_, { _id, artistId}) => {
+      try{
+        const response = await get(_id,`getSpotifyArtist:${artistId}`, 60*60*24, `https://api.spotify.com/v1/artists/${artistId}`);
+        return response;
+      }catch(error){
+        throw new GraphQLError(error);
+      }
+    },
+    getSpotifyTrack: async (_, { _id, trackId}) => {
+      try{
+        const response = await get(_id,`getSpotifyTrack:${trackId}`, 60*60*24, `https://api.spotify.com/v1/tracks/${trackId}`);
+        return response;
+      }catch(error){
+        throw new GraphQLError(error);
+      }
+    },
+    getSpotifyAlbum: async (_, { _id, albumId}) => {
+      try{
+        const response = await get(_id,`getSpotifyAlbum:${albumId}`, 60*60*24, `https://api.spotify.com/v1/albums/${albumId}`);
+        return response;
+      }catch(error){
+        throw new GraphQLError(error);
+      }
+    },
+    getSpotifySearch: async (_, {_id, query, type, limit, offset}) => {
+      try{
+        validateArgsString([query]);
+        verifyLimit(limit);
+        verifyOffset(offset);
+        verifyType(type);
+        const params = new URLSearchParams({
+          limit: limit, 
+          offset: offset,
+          query: query,
+          type: type
+        });
+        const response = await get(_id,`getSpotifySearch:${params.toString()}`, 60*60*24, 'https://api.spotify.com/v1/search',params);
+        return response;
+      }catch(error){
+        throw new GraphQLError(error);
+      }
+    },
+    getSpotifyCurrentlyPlaying: async (_, {_id}) => {
+      try{
+        const response = await get(_id,`getSpotifyCurrentlyPlaying:${_id}`, 30, "https://api.spotify.com/v1/me/player/currently-playing");
+        return response
+      }catch(error){
+        throw new GraphQLError(error);
+      }
+    },
+
   },
   Mutation: {
     authorizeSpotify: async (_, { _id, code }) => {
@@ -255,7 +325,7 @@ export const resolvers = {
             }
           );
           await addToCache(`access_token:${_id}`, response.data.access_token, 3600);
-          await client.rPush(_id,`access_token:${_id}`)
+          await client.rPush(`spotify:${_id}`,`access_token:${_id}`)
           return {
             _id: user._id,
             email: user.email
@@ -286,7 +356,7 @@ export const resolvers = {
           },
           }
         );
-        await clearUserCache(_id);
+        await clearUserCache(`spotify:${_id}`);
         return{
           _id: _id,
           email: user.email
@@ -318,7 +388,7 @@ export const resolvers = {
           refresh_token: null
         };
         let record = await insertRecord(usersCollection,`user:${newUser._id.toString()}`,newUser);//Could change the key late idc
-        await client.rPush(newUser._id.toString(),`user:${newUser._id}`)
+        await client.rPush(`social:${newUser._id.toString()}`,`user:${newUser._id}`)
         return {
           _id: record.id,
           email: record.email,
@@ -340,7 +410,8 @@ export const resolvers = {
         if(!userRemove){
           throw new GraphQLError("Could not remove");
         }
-        await clearUserCache(_id);
+        await clearUserCache(`spotify:${_id}`);
+        await clearUserCache(`social:${_id}`)
         return{
           _id: _id,
           email: user.email

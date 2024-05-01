@@ -3,9 +3,14 @@ type Query {
     getSpotifyAuthUrl: String
     getUser(_id: String!): User
     validateUser(email: String!, password: String!): User
-    getTopTracks(_id: String!, time_range: String!, offset: Int!, limit: Int!): TopTracks
-    getTopArtists(_id: String!, time_range: String!, offset: Int!, limit: Int!): TopArtists
+    getSpotifyTopTracks(_id: String!, time_range: String!, offset: Int!, limit: Int!): TracksResponse
+    getSpotifyTopArtists(_id: String!, time_range: String!, offset: Int!, limit: Int!): ArtistsResponse
     getSpotifyProfile(_id: String!): SpotifyProfile
+    getSpotifyArtist(_id: String!, artistId: String!): Artist
+    getSpotifyTrack(_id: String!, trackId: String!): Track
+    getSpotifyAlbum(_id: String!, albumId: String!): Album
+    getSpotifySearch(_id: String!, query: String!, type: [String!], limit: Int!, offset: Int!): SearchResponse
+    getSpotifyCurrentlyPlaying(_id: String!): CurrentlyPlayingResponse
 }
 
 type Mutation {
@@ -19,6 +24,11 @@ type User {
     _id: String!
     email: String!
     authorized: Boolean
+}
+type SearchResponse {
+    tracks: TracksResponse
+    artists: ArtistsResponse
+    albums: AlbumsResponse
 }
 type SpotifyProfile {
     country: String
@@ -42,7 +52,7 @@ type ExplicitContent {
     filter_enabled: Boolean
     filter_locked: Boolean
 }
-type TopTracks {
+type TracksResponse {
     href: String!
     limit: Int!
     next: String
@@ -51,8 +61,17 @@ type TopTracks {
     total: Int!
     items: [Track!]
 }
+type AlbumsResponse {
+    href: String!
+    limit: Int!
+    next: String
+    offset: Int!
+    previous: String
+    total: Int!
+    items: [Album!]
+}
 
-type TopArtists {
+type ArtistsResponse {
     href: String!
     limit: Int!
     next: String
@@ -116,7 +135,7 @@ type Image {
     height: Int!
     width: Int!
 }
-type Artists {
+type ArtistSimp {
     external_urls: ExternalUrls
     href: String
     id: String
@@ -138,9 +157,20 @@ type Album {
     restrictions: Restrictions
     type: String!
     uri: String!
-    artists: Artists
+    artists: [ArtistSimp]
 
 
 }
+
+type CurrentlyPlayingResponse {
+    repeat_state: String
+    shuffle_state: Boolean
+    timestamp: Int
+    progress_ms: Int
+    is_playing: Boolean
+    item: Track
+    currently_playing_type: String
+}
+
 `;
 
