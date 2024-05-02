@@ -7,7 +7,7 @@ import { users as usersCollection } from "./config/mongoCollections.js";
 import bcrypt from 'bcrypt';
 
 import {client, checkCache, addToCache, removeFromCache, clearUserCache} from "./data/cache.js";
-import {verifyType, charIsLowercase, charIsNumber, validateDate, isValidEmail, validateArgsString, validatePassword, isValidId, verifyTimeRange, verifyOffset, verifyLimit} from "./helpers.js";
+import {calculateAverages, verifyType, charIsLowercase, charIsNumber, validateDate, isValidEmail, validateArgsString, validatePassword, isValidId, verifyTimeRange, verifyOffset, verifyLimit} from "./helpers.js";
 import {getRecords, getRecordById, getRecordsByIds, insertRecord } from "./data/records.js";
 import { Graph } from "redis";
 
@@ -284,6 +284,37 @@ export const resolvers = {
         throw new GraphQLError(error);
       }
     },
+    getSpotifyTrackAudioFeatures: async (_, {_id,trackId}) => {
+      try{
+        const response = await get(_id,`getSpotifyTrackAudioFeatures:${trackId}`, 60*60*24, `https://api.spotify.com/v1/audio-features/${trackId}`);
+        return response
+      }catch(error){
+        throw new GraphQLError(error);
+      }
+    },
+    getUserStats: async (_, {_id}) => {
+      try{
+        const cache = await checkCache(`getUserStats:${_id}`);
+        if(cache){
+          return cache;
+        }
+        const params = new URLSearchParams({
+          limit: 50, //Can only get 50 at a time so could mess with offset to get a larger data pool
+          offset: 0,
+          time_range: "long_term"//Could make this a param
+        });
+        const response = await get(_id,`getTopTracks:${_id}:${params.toString()}`, 60*60*24, 'https://api.spotify.com/v1/me/top/tracks',params);
+        const ids = response.items.map(item => item.id);
+        const ids_comma= ids.join(',');
+        const response2 = await get(_id,`getSpotifyTrackAudioFeatures:ids=${ids_comma}`, 60*60*24, `https://api.spotify.com/v1/audio-features?ids=${ids_comma}`);
+        const avgs = calculateAverages(response2.audio_features);
+        await addToCache(`getUserStats:${_id}`,avgs,60*60*24);
+        return avgs;
+        
+      }catch(error){
+        throw new GraphQLError(error);
+      }
+    }
 
   },
   Mutation: {

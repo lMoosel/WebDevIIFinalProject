@@ -134,5 +134,45 @@ function verifyType(types) {
     throw new GraphQLError('Most only be an array of "album", "track", "artist".');
   } 
 }
-  
-export {verifyType, charIsLowercase, charIsNumber, validateDate, isValidEmail, validateArgsString, validatePassword, isValidId, verifyTimeRange, verifyOffset, verifyLimit}
+
+function calculateAverages(audioFeatures) {
+  let sums = {
+      danceability: 0,
+      energy: 0,
+      key: 0,
+      loudness: 0,
+      mode: 0,
+      speechiness: 0,
+      acousticness: 0,
+      instrumentalness: 0,
+      liveness: 0,
+      valence: 0,
+      tempo: 0,
+      duration_ms: 0,
+      time_signature: 0
+  };
+  let count = audioFeatures.length;
+
+  audioFeatures.forEach(track => {
+      sums.danceability += track.danceability;
+      sums.energy += track.energy;
+      sums.key += track.key;
+      sums.loudness += track.loudness;
+      sums.mode += track.mode;
+      sums.speechiness += track.speechiness;
+      sums.acousticness += track.acousticness;
+      sums.instrumentalness += track.instrumentalness;
+      sums.liveness += track.liveness;
+      sums.valence += track.valence;
+      sums.tempo += track.tempo;
+      sums.duration_ms += track.duration_ms;
+      sums.time_signature += track.time_signature;
+  });
+  let averages = {};
+  for (let prop in sums) {
+      averages[prop] = sums[prop] / count;
+  }
+  return averages;
+}
+
+export {calculateAverages, verifyType, charIsLowercase, charIsNumber, validateDate, isValidEmail, validateArgsString, validatePassword, isValidId, verifyTimeRange, verifyOffset, verifyLimit}

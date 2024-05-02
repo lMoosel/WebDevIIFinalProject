@@ -3,6 +3,7 @@ type Query {
     getSpotifyAuthUrl: String
     getUser(_id: String!): User
     validateUser(email: String!, password: String!): User
+    getUserStats(_id: String!): StatResponse
     getSpotifyTopTracks(_id: String!, time_range: String!, offset: Int!, limit: Int!): TracksResponse
     getSpotifyTopArtists(_id: String!, time_range: String!, offset: Int!, limit: Int!): ArtistsResponse
     getSpotifyProfile(_id: String!): SpotifyProfile
@@ -11,6 +12,7 @@ type Query {
     getSpotifyAlbum(_id: String!, albumId: String!): Album
     getSpotifySearch(_id: String!, query: String!, type: [String!], limit: Int!, offset: Int!): SearchResponse
     getSpotifyCurrentlyPlaying(_id: String!): CurrentlyPlayingResponse
+    getSpotifyTrackAudioFeatures(_id: String!, trackId: String!): AudioFeatureResponse
 }
 
 type Mutation {
@@ -172,5 +174,42 @@ type CurrentlyPlayingResponse {
     currently_playing_type: String
 }
 
+type AudioFeatureResponse {
+    acousticness: Float
+    analysis_url: String
+    danceability: Float
+    duration_ms: Int
+    energy: Float
+    id: String
+    instrumentalness: Float
+    key: Int
+    liveness: Float
+    loudness: Float
+    mode: Int
+    speechiness: Float
+    tempo: Float
+    time_signature: Int
+    track_href: String
+    type: String
+    uri: String
+    valence: Float
+}
+
+type StatResponse {
+    acousticness: Float
+    danceability: Float
+    duration_ms: Float
+    energy: Float
+    instrumentalness: Float
+    key: Float
+    liveness: Float
+    loudness: Float
+    mode: Float
+    speechiness: Float
+    tempo: Float
+    time_signature: Float
+    valence: Float
+}
+scalar Float
 `;
 
