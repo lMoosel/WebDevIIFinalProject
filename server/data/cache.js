@@ -1,7 +1,9 @@
 import { ObjectId } from "mongodb";
 import redis from "redis";
 
-const client = redis.createClient();
+const client = redis.createClient({
+  url: "redis://redis:6379"
+});
 await client.connect();
 
 /**

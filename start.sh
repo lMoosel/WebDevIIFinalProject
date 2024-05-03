@@ -2,6 +2,8 @@
 
 cd server
 npm i
+
+# docker compose up --force-recreate --detach --build &
 docker compose up &
 
 cd ../my-react-app
