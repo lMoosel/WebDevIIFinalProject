@@ -4,14 +4,12 @@ import { SocialHub } from "./SocialHub"
 import { CurrentSong } from "./CurrentSong"
 
 export function StatsScreen() {
-
     return (
         <>
         <div id="Stat-screen-main-div">
-            <span class="side-span"><GenreInfo/></span>
-            <span class="center-span"><Chart/></span>
-            <span class="side-span"><SocialHub/></span>
-            <CurrentSong/>
+            <span className="side-span"><GenreInfo hideInfo={false} /></span>
+            <span className="center-span"><Chart hideInfo={false} /></span>
+            <span className="side-span"><SocialHub hideInfo={false} /></span>
         </div>
         </>
     )
