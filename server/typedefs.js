@@ -29,6 +29,8 @@ type User {
     _id: String!
     email: String!
     authorized: Boolean
+    friendRequests: [String]
+    friends: [String]
 }
 type SearchResponse {
     tracks: TracksResponse

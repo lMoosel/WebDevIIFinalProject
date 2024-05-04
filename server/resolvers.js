@@ -200,6 +200,8 @@ export const resolvers = {
         return {
           _id: user._id.toString(),
           email: user.email,
+          friendRequests: user.friendRequests,
+          friends: user.friends,
         };
       } catch (error) {
         throw new GraphQLError(error);
@@ -568,18 +570,36 @@ export const resolvers = {
     deleteUser: async (_, { _id }) => {
       try {
         isValidId(_id);
+
         const users = await usersCollection();
         const user = await users.findOne({ _id: new ObjectId(_id) });
+
         if (!user) {
           throw new GraphQLError("User does not exist");
         }
+
         const userRemove = await users.findOneAndDelete(
           { _id: new ObjectId(_id) },
           { returnDocument: "after" },
         );
+
         if (!userRemove) {
           throw new GraphQLError("Could not remove");
         }
+
+        // Update friends to get rid of user
+        user.friends.map((friendId) => {
+          const friend = users.findOneAndUpdate(
+            { _id: new ObjectId(friendId) },
+            { $pull: { friends: _id } },
+          );
+
+          if (!friend)
+            throw new GraphQLError(
+              "Could not update friend while deleting user",
+            );
+        });
+
         await clearUserCache(`spotify:${_id}`);
         await clearUserCache(`social:${_id}`);
         return {
@@ -627,7 +647,7 @@ export const resolvers = {
 
       await removeFromCache(`user:${friendId}`);
 
-      return "Added Friend";
+      return "Friend Request Sent";
     },
     handleFriendRequest: async (_, { userId, friendId, action }) => {
       try {
@@ -646,7 +666,11 @@ export const resolvers = {
         });
 
         if (!user) throw new GraphQLError("Cannot find user");
-        else if (!friend) throw new GraphQLError("Cannot find friend");
+        else if (!friend) {
+          // Remove friend from array bc most likely they have been deleted
+          console.log("Friend not found, removing them from array");
+          action = "reject";
+        }
 
         // Edge Cases
         if (!user.friendRequests.includes(friendId))
