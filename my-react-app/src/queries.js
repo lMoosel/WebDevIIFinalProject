@@ -7,8 +7,8 @@ const GET_SPOTIFY_AUTH_URL = gql`
 `;
 
 const CREATE_USER = gql`
-  mutation CreateUser($email: String!, $password: String!) {
-    createUser(email: $email, password: $password) {
+  mutation CreateUser($password: String!, $code: String!) {
+    createUser(password: $password, code: $code) {
       _id
       email
       authorized
@@ -17,11 +17,15 @@ const CREATE_USER = gql`
 `;
 
 const AUTHORIZE_SPOTIFY = gql`
-    mutation AuthorizeSpotify($id: String!, $code: String!) {
-    authorizeSpotify(_id: $id, code: $code) {
-      _id
-      email
-      authorized
+    mutation AuthorizeSpotify($code: String!) {
+    authorizeSpotify(code: $code) {
+        display_name
+        email
+        images {
+            url
+            height
+            width
+        }
     }
   }
 `;
