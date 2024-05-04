@@ -25,47 +25,52 @@ const validateDate = (date, cmpDate = null) => {
 };
 let isValidEmail = function (email) {
     // Based on https://help.xmatters.com/ondemand/trial/valid_email_format.htm
-    if (!email.includes("@")) return false;
-    let s = email.split("@");
-    if (s.length != 2) return false;
-    let [prefix, domain] = s;
-    if (!prefix.length || !domain.length) return false;
+    // if (!email.includes("@")) return false;
+    // let s = email.split("@");
+    // if (s.length != 2) return false;
+    // let [prefix, domain] = s;
+    // if (!prefix.length || !domain.length) return false;
   
-    for (let i = 0; i < prefix.length; i++) {
-        if (
-            charIsLowercase(prefix[i])
-            ||
-            charIsNumber(prefix[i])
-        ) {
-            continue;
-        } else if ("_.-".includes(prefix[i])) {
-            if (!i) return false;
-            if (i == prefix.length - 1) return false;
-            if ("_.-".includes(prefix[i - 1])) return false;
-            continue;
-        } else {
-            return false;
-        }
-    }
+    // for (let i = 0; i < prefix.length; i++) {
+    //     if (
+    //         charIsLowercase(prefix[i])
+    //         ||
+    //         charIsNumber(prefix[i])
+    //     ) {
+    //         continue;
+    //     } else if ("_.-".includes(prefix[i])) {
+    //         if (!i) return false;
+    //         if (i == prefix.length - 1) return false;
+    //         if ("_.-".includes(prefix[i - 1])) return false;
+    //         continue;
+    //     } else {
+    //         return false;
+    //     }
+    // }
   
-    let idx = -1;
-    for (let i = domain.length - 1; i >= 0; i--) {
-        if (domain[i] == ".") {
-            idx = i;
-            break;
-        }
-    }
-    if (idx == -1 || idx == 0 || idx == domain.length - 1) return false;
-    let tld = domain.substring(idx + 1);
-    let site = domain.substring(0, idx - 1);
-    for (let i = 0; i < site.length; i++) {
-        if (!(
-            charIsLowercase(site[i]) || charIsNumber(site[i]) || site[i] == "-"
-        )) { return false }
-    }
-    if (tld.length < 2) return false;
-    return true;
-}
+    // let idx = -1;
+    // for (let i = domain.length - 1; i >= 0; i--) {
+    //     if (domain[i] == ".") {
+    //         idx = i;
+    //         break;
+    //     }
+    // }
+    // if (idx == -1 || idx == 0 || idx == domain.length - 1) return false;
+    // let tld = domain.substring(idx + 1);
+    // let site = domain.substring(0, idx - 1);
+    // for (let i = 0; i < site.length; i++) {
+    //     if (!(
+    //         charIsLowercase(site[i]) || charIsNumber(site[i]) || site[i] == "-"
+    //     )) { return false }
+    // }
+    // if (tld.length < 2) return false;
+    // return true;
+
+    //Regex used from https://emailregex.com/
+    let emailRegex = /^(?:[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*|"(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21\x23-\x5b\x5d-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])*")@(?:(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?|\[(?:(?:(2(5[0-5]|[0-4][0-9])|1[0-9][0-9]|[1-9]?[0-9]))\.){3}(?:(2(5[0-5]|[0-4][0-9])|1[0-9][0-9]|[1-9]?[0-9])|[a-z0-9-]*[a-z0-9]:(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21-\x5a\x53-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])+)\])$/ 
+    return emailRegex.test(email)
+
+  }
 const validateArgsString = (args) => {
     // Check for empty strings
     for (const key of Object.keys(args)) {
