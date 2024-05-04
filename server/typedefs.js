@@ -20,6 +20,9 @@ type Mutation {
     deleteUser(_id: String!) : User
     authorizeSpotify( code: String!): AutProfile
     editUser(_id: String!, newEmail: String, newPassword: String): User
+    sendFriendRequest(userId: String!, friendId: String!): String
+    handleFriendRequest(userId: String!, friendId: String!, action: String!): String
+    removeFriend(userId: String!, friendId: String!): String
 }
 
 type User {
