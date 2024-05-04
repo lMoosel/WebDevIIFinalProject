@@ -625,6 +625,8 @@ export const resolvers = {
       if (!newFriend)
         throw new GraphQLError("Something went wrong when updating friend");
 
+      await removeFromCache(`user:${friendId}`);
+
       return "Added Friend";
     },
     handleFriendRequest: async (_, { userId, friendId, action }) => {
@@ -672,6 +674,9 @@ export const resolvers = {
           if (!updatedUser || !updatedFriend)
             throw new GraphQLError("Something went wrong when updating user");
 
+          await removeFromCache(`user:${userId}`);
+          await removeFromCache(`user:${friendId}`);
+
           return "Friend request accepted";
         } else if (action === "reject") {
           const updatedUser = await users.findOneAndUpdate(
@@ -683,6 +688,8 @@ export const resolvers = {
 
           if (!updatedUser)
             throw new GraphQLError("Something went wrong when updating user");
+
+          await removeFromCache(`user:${userId}`);
 
           return "Friend request rejected";
         } else throw new GraphQLError("Action not recognized");
@@ -726,6 +733,9 @@ export const resolvers = {
 
         if (!updatedUser || !updatedFriend)
           throw new GraphQLError("Something went wrong when removing friend");
+
+        await removeFromCache(`user:${userId}`);
+        await removeFromCache(`user:${friendId}`);
 
         return "Removed friend";
       } catch (error) {
