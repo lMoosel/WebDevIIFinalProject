@@ -1,8 +1,6 @@
 import { ObjectId } from "mongodb";
 import redis from "redis";
 
-console.log(process.env);
-
 const redisConnectionURL = process.env.REDIS_CONNECTION_URL || "redis://localhost:6379";
 
 const client = redis.createClient({

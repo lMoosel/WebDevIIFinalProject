@@ -1,5 +1,7 @@
 #!/bin/bash
 
+fuser -k 5173/tcp   # kills process running on port 5173 (hopefully a Vite server)
+
 cd server
 npm i
 
