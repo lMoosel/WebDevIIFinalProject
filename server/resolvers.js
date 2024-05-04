@@ -318,7 +318,7 @@ export const resolvers = {
 
   },
   Mutation: {
-    authorizeSpotify: async (_, { _id, code }) => {
+    authorizeSpotify: async (_, { code }) => {
       try {
         const clientId = process.env.SPOTIFY_CLIENT_ID;
         const clientSecret = process.env.SPOTIFY_CLIENT_SECRET;
@@ -337,30 +337,28 @@ export const resolvers = {
           },
           json: true
         };
-        isValidId(_id);
-        const users = await usersCollection();
-        const user = await users.findOne({ _id: new ObjectId(_id) });
-        if (!user) {
-          throw new GraphQLError('Could not find user');
-        }
         const response = await axios.post(options.url, options.form.toString(), {
         headers: options.headers
         });
         if (response.status === 200) {
-          await users.updateOne(
-            { _id: new ObjectId(_id) },
-            {
-            $set: {
-                refresh_token:  response.data.refresh_token,
-            },
-            }
-          );
-          await addToCache(`access_token:${_id}`, response.data.access_token, 3600);
-          await client.rPush(`spotify:${_id}`,`access_token:${_id}`)
-          return {
-            _id: user._id,
-            email: user.email
-          };
+          const ret = await getAxiosCall('https://api.spotify.com/v1/me', response.data.access_token, null)
+          const data = {
+            refresh_token: response.data.refresh_token,
+            access_token: response.data.access_token,
+            username: ret.data.display_name,
+            email: ret.data.email,
+            profile_picture: ret.data.images,
+            spotifyId: ret.data.id
+          }
+          const users = await usersCollection();
+          const user = await users.findOne({ //Doesnt allow duplicate spotify accounts in our system
+            spotifyId: { $regex: new RegExp('^' + ret.data.id + '$', 'i') },
+          });
+          if (user) {
+            throw new GraphQLError('Spotify account already in use.');
+          }
+          await addToCache(code,data,60*15);
+          return ret.data;
         } else {
           throw new GraphQLError('Request completed but status not OK:', response.status);
         }
@@ -368,56 +366,27 @@ export const resolvers = {
         throw new GraphQLError(error);
       }
     },
-    deauthorizeSpotify: async (_, { _id}) => {
+    createUser: async (_, { password, code }) => {
       try{
-        isValidId(_id);
-        const users = await usersCollection();
-        const user = await users.findOne({ _id: new ObjectId(_id) });
-        if (!user) {
-          throw new GraphQLError('Could not find user');
+        const response = await checkCache(code);
+        if(!response){
+          throw new GraphQLError("Code timed out, please reauthorize.")
         }
-        if(!user.refresh_token){
-          throw new GraphQLError('User is already deauthorized');
-        }
-        await users.updateOne(
-          { _id: new ObjectId(_id) },
-          {
-          $set: {
-              refresh_token:  null
-          },
-          }
-        );
-        await clearUserCache(`spotify:${_id}`);
-        return{
-          _id: _id,
-          email: user.email
-        }
-      }catch(error){
-        throw new GraphQLError(error)
-      }
-    },
-    createUser: async (_, { email, password }) => {
-      try{
-        validateArgsString([email,password]);
+        validateArgsString([password]);
         validatePassword(password);
-        isValidEmail(email);
-        email = email.trim();
         password = password.trim();
-        const users = await usersCollection();
-        const user = await users.findOne({
-          email: { $regex: new RegExp('^' + email + '$', 'i') },
-        });
-        if (user) {
-          throw new GraphQLError('Email address already taken');
-        }
         const saltRounds = 16;
         const hashPass = await bcrypt.hash(password, saltRounds);
         let newUser = {
           _id: new ObjectId(),
-          email: email, 
+          email: response.email, 
           password: hashPass,
-          refresh_token: null
+          refresh_token: response.refresh_token,
+          profile_picture: response.profile_picture,
+          username: response.username,
+          spotifyId: response.spotifyId
         };
+        await addToCache(`access_token:${newUser._id.toString()}`,response.access_token, 45*60);
         let record = await insertRecord(usersCollection,`user:${newUser._id.toString()}`,newUser);//Could change the key late idc
         await client.rPush(`social:${newUser._id.toString()}`,`user:${newUser._id}`)
         return {

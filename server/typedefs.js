@@ -16,10 +16,9 @@ type Query {
 }
 
 type Mutation {
-    createUser(email: String!, password: String!): User
+    createUser(password: String!, code: String!): User
     deleteUser(_id: String!) : User
-    authorizeSpotify(_id: String!, code: String!): User
-    deauthorizeSpotify(_id: String!) : User
+    authorizeSpotify( code: String!): AutProfile
 }
 
 type User {
@@ -31,6 +30,11 @@ type SearchResponse {
     tracks: TracksResponse
     artists: ArtistsResponse
     albums: AlbumsResponse
+}
+type AutProfile {
+    display_name: String
+    email: String
+    images: [Image]
 }
 type SpotifyProfile {
     country: String
