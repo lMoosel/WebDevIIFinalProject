@@ -505,10 +505,6 @@ export const resolvers = {
           `user:${newUser._id.toString()}`,
           newUser,
         ); //Could change the key late idc
-        await client.rPush(
-          `social:${newUser._id.toString()}`,
-          `user:${newUser._id}`,
-        );
         return {
           _id: record.id,
           email: record.email,
@@ -558,8 +554,8 @@ export const resolvers = {
           throw new GraphQLError("User does not exist");
         }
 
-        await clearUserCache(`user:${_id}`);
-
+        await removeFromCache(`user:${_id}`);
+        
         return user;
       } catch (error) {
         throw new GraphQLError(error);
@@ -581,7 +577,9 @@ export const resolvers = {
           throw new GraphQLError("Could not remove");
         }
         await clearUserCache(`spotify:${_id}`);
-        await clearUserCache(`social:${_id}`);
+        await removeFromCache(`active_token:${_id}`)
+        await removeFromCache(`getUserStats:${_id}`);
+        await removeFromCache(`user:${_id}`);
         return {
           _id: _id,
           email: user.email,
