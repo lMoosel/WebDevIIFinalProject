@@ -184,5 +184,28 @@
 
 }
 
+#Login-Logout-button {
+  position: absolute;
 
+  margin: auto;
 
+  right: 1vw;
+  top: 25%;
+}
+
+#header {
+
+  position: fixed;
+
+  align-content: center;
+  white-space: nowrap;
+
+  top: 1vh;
+  left: 1vw;
+  right: 1vw;
+
+  height: 5vh;
+
+  border-style: solid;
+  border-color: #1DB954;
+}

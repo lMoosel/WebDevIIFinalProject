@@ -12,7 +12,7 @@ import { GenreInfo } from './components/GenreInfo.jsx'
 import { Chart } from './components/Chart.jsx'
 import { SignUp } from './components/SignUp.jsx'
 import { CurrentSong } from './components/CurrentSong.jsx'
-
+import { Header } from './components/Header.jsx'
 
 function App() {
   const [count, setCount] = useState(0)
@@ -35,6 +35,7 @@ function App() {
     return (
       <>
         <CookiesProvider>
+            <Header/> <br/> <br/> <br/>
             <Routes>
 
               <Route exact path="/" element={<StatsScreen/>}/>
