@@ -1,4 +1,5 @@
 import axios from "axios";
+import { GraphQLError } from "graphql";
 import { users as usersCollection } from "../config/mongoCollections.js";
 import {
   client,
