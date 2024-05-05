@@ -34,7 +34,7 @@ function App() {
     )
   }
   else{*/
-  let user = true
+  let user = cookies.user
     return (
       <>
       {user &&
@@ -43,11 +43,6 @@ function App() {
             <Routes>
 
               <Route exact path="/" element={<StatsScreen/>}/>
-
-              <Route path="/login" element={<Login/>}/>
-              <Route path="/callback" element={<Callback/>}/>
-              <Route path="/authorize" element={<Authorize/>}/>
-
               <Route path="/socialhub" element={<SocialHub hideInfo={true}/>}/>
               <Route path="/topcategories" element={<GenreInfo hideInfo={true}/>}/>
               <Route path="/chart" element={<Chart hideInfo={true}/>}/>
@@ -57,7 +52,13 @@ function App() {
       }
 
       {!user &&
-        <Login/>
+      <CookiesProvider>
+      <Routes>
+        <Route path="/login" element={<Login/>}/>
+        <Route path="/callback" element={<Callback/>}/>
+        <Route path="/" element={<Authorize/>}/>
+      </Routes>
+  </CookiesProvider>
       }
       </>
     )

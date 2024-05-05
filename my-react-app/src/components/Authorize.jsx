@@ -1,7 +1,7 @@
 import React from 'react';
 import { useQuery } from '@apollo/client';
 import queries from '../queries.js';
-
+import { Link } from 'react-router-dom';
 function Authorize() {
     const { data, loading, error } = useQuery(queries.GET_SPOTIFY_AUTH_URL);
 
@@ -15,10 +15,15 @@ function Authorize() {
 
     return (
         <div style={{ textAlign: 'center', marginTop: '50px' }}>
-            <h1>Welcome to APPNAME</h1>
-            <p>Please click the button below to authenticate with Spotify.</p>
+            <h1>Welcome to Spotifind</h1>
+            <p>Please create a new account or log in.</p>
             <button onClick={handleRedirect} disabled={loading || !data || !data.getSpotifyAuthUrl}>
-                Authenticate with Spotify
+                Create Account
+            </button>
+            <button>
+            <Link to={`/login/`}>
+                  Login
+            </Link>
             </button>
             {loading && <p>Loading...</p>}
             {error && <p>Error: {error.message}</p>}
