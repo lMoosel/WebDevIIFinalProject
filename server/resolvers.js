@@ -76,30 +76,6 @@ export const resolvers = {
         throw new GraphQLError(error);
       }
     },
-    validateUser: async (_, { email, password }) => {
-      try {
-        validateArgsString([email, password]);
-        validatePassword(password);
-        isValidEmail(email);
-        email = email.trim();
-        password = password.trim();
-        const users = await usersCollection();
-        const user = await users.findOne({ email: email });
-        if (!user) {
-          throw new GraphQLError("Either password or email is invalid");
-        }
-        const compare = await bcrypt.compare(password, user.password);
-        if (!compare) {
-          throw new GraphQLError("Either password or email is invalid");
-        }
-        return {
-          _id: user._id.toString(),
-          email: user.email,
-        };
-      } catch (error) {
-        throw new GraphQLError(error);
-      }
-    },
     getSpotifyProfile: async (_, { _id }) => {
       try {
         const response = await get(
@@ -339,6 +315,30 @@ export const resolvers = {
             response.status,
           );
         }
+      } catch (error) {
+        throw new GraphQLError(error);
+      }
+    },
+    validateUser: async (_, { email, password }) => {
+      try {
+        validateArgsString([email, password]);
+        validatePassword(password);
+        isValidEmail(email);
+        email = email.trim();
+        password = password.trim();
+        const users = await usersCollection();
+        const user = await users.findOne({ email: email });
+        if (!user) {
+          throw new GraphQLError("Either password or email is invalid");
+        }
+        const compare = await bcrypt.compare(password, user.password);
+        if (!compare) {
+          throw new GraphQLError("Either password or email is invalid");
+        }
+        return {
+          _id: user._id.toString(),
+          email: user.email,
+        };
       } catch (error) {
         throw new GraphQLError(error);
       }

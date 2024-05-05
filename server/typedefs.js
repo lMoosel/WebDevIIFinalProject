@@ -2,7 +2,6 @@ export const typeDefs = `#graphql
 type Query {
     getSpotifyAuthUrl: String
     getUser(_id: String!): User
-    validateUser(email: String!, password: String!): User
     getUserStats(_id: String!): StatResponse
     getSpotifyTopTracks(_id: String!, time_range: String!, offset: Int!, limit: Int!): TracksResponse
     getSpotifyTopArtists(_id: String!, time_range: String!, offset: Int!, limit: Int!): ArtistsResponse
@@ -17,6 +16,7 @@ type Query {
 
 type Mutation {
     createUser(password: String!, code: String!): User
+    validateUser(email: String!, password: String!): User
     deleteUser(_id: String!) : User
     authorizeSpotify( code: String!): AutProfile
     editUser(_id: String!, newEmail: String, newPassword: String): User
