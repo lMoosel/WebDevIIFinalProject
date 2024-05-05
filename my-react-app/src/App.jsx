@@ -10,15 +10,17 @@ import './App.css'
 import { SocialHub } from './components/SocialHub.jsx'
 import { GenreInfo } from './components/GenreInfo.jsx'
 import { Chart } from './components/Chart.jsx'
-import { SignUp } from './components/SignUp.jsx'
 import { CurrentSong } from './components/CurrentSong.jsx'
 import { Header } from './components/Header.jsx'
+import Login from './components/Login.jsx'
+import Authorize from './components/Authorize.jsx'
+import Callback from './components/Callback.jsx'
 
 function App() {
   const [count, setCount] = useState(0)
   const [cookies, setCookie] = useCookies(['user'])
   /*
-  const [onHomeScreen, setHomeScreen] = useState(true)
+  const [onHomeScreen, setHomeScreen] = usfeState(true)
 
   const toggleHomeScreen = async () => {
     setHomeScreen(!onHomeScreen)
@@ -42,8 +44,9 @@ function App() {
 
               <Route exact path="/" element={<StatsScreen/>}/>
 
-              <Route path="/login" element={<StatsScreen/>}/>
-              <Route path="/signup" element={<SignUp/>}/>
+              <Route path="/login" element={<Login/>}/>
+              <Route path="/callback" element={<Callback/>}/>
+              <Route path="/authorize" element={<Authorize/>}/>
 
               <Route path="/socialhub" element={<SocialHub hideInfo={true}/>}/>
               <Route path="/topcategories" element={<GenreInfo hideInfo={true}/>}/>

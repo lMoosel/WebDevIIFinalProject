@@ -7,7 +7,7 @@ const GET_SPOTIFY_AUTH_URL = gql`
 `;
 
 const CREATE_USER = gql`
-  mutation CreateUser($password: String!, $code: String!) {
+    mutation CreateUser($password: String!, $code: String!) {
     createUser(password: $password, code: $code) {
       _id
       email
@@ -29,10 +29,19 @@ const AUTHORIZE_SPOTIFY = gql`
     }
   }
 `;
-
+const VALIDATE_USER = gql`
+    mutation ValidateUser($email: String!, $password: String!) {
+    validateUser(email: $email, password: $password) {
+        _id
+        email
+        authorized
+    }
+  }
+`;
 const exported = {
     GET_SPOTIFY_AUTH_URL,
     CREATE_USER,
-    AUTHORIZE_SPOTIFY
+    AUTHORIZE_SPOTIFY,
+    VALIDATE_USER
 }
 export default exported;

@@ -1,12 +1,13 @@
 import axios from "axios";
-import { users as usersCollection } from "./config/mongoCollections.js";
+import { GraphQLError } from "graphql";
+import { users as usersCollection } from "../config/mongoCollections.js";
 import {
   client,
   checkCache,
   addToCache,
   removeFromCache,
   clearUserCache,
-} from "./data/cache.js";
+} from "./cache.js";
 
 export const getAccessToken = async (_id) => {
   isValidId(_id);
@@ -127,6 +128,36 @@ export const getAxiosCall = async (url, access_token, etag, params) => {
   }
 };
 
+export const get = async (_id, key, exp, url, params = null) => {
+  isValidId(_id);
+  const cache = await checkCache(key);
+  const access_token = await getAccessToken(_id);
+  if (!access_token) {
+    throw new GraphQLError("Not authorized");
+  }
+  let etag = null;
+  if (cache) {
+    //If we have stored it once and no etag
+    etag = cache.etag;
+    if (!etag) {
+      return cache.data;
+    }
+  }
+  const response = await getAxiosCall(url, access_token, etag, params);
+  let hasParams = false;
+  if (params) {
+    hasParams = true;
+  }
+  const handledResponse = await handleResponse(
+    response,
+    key,
+    _id,
+    exp,
+    hasParams,
+  );
+  return handledResponse;
+};
+
 export const getCurrentSong = () => {
   //https://developer.spotify.com/documentation/web-api/reference/get-information-about-the-users-current-playback
   return false;
@@ -157,3 +188,13 @@ export const getAverageListeningSession = () => {
   return null;
 };
 
+export const getRecentTracks = async (_id, limit = 20) => {
+  const url = "https://api.spotify.com/v1/me/player/recently-played";
+  const params = {
+    limit,
+  };
+
+  const data = await get(_id, `getRecentTracks:${_id}`, 2 * 60, url, params);
+
+  const recentTracks = data.items;
+};

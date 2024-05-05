@@ -37,38 +37,9 @@ import {
   getAccessToken,
   handleResponse,
   getAxiosCall,
+  get,
 } from "./data/spotify.js";
 import { Graph } from "redis";
-
-const get = async (_id, key, exp, url, params = null) => {
-  isValidId(_id);
-  const cache = await checkCache(key);
-  const access_token = await getAccessToken(_id);
-  if (!access_token) {
-    throw new GraphQLError("Not authorized");
-  }
-  let etag = null;
-  if (cache) {
-    //If we have stored it once and no etag
-    etag = cache.etag;
-    if (!etag) {
-      return cache.data;
-    }
-  }
-  const response = await getAxiosCall(url, access_token, etag, params);
-  let hasParams = false;
-  if (params) {
-    hasParams = true;
-  }
-  const handledResponse = await handleResponse(
-    response,
-    key,
-    _id,
-    exp,
-    hasParams,
-  );
-  return handledResponse;
-};
 
 export const resolvers = {
   Query: {
@@ -100,30 +71,6 @@ export const resolvers = {
           email: user.email,
           friendRequests: user.friendRequests,
           friends: user.friends,
-        };
-      } catch (error) {
-        throw new GraphQLError(error);
-      }
-    },
-    validateUser: async (_, { email, password }) => {
-      try {
-        validateArgsString([email, password]);
-        validatePassword(password);
-        isValidEmail(email);
-        email = email.trim();
-        password = password.trim();
-        const users = await usersCollection();
-        const user = await users.findOne({ email: email });
-        if (!user) {
-          throw new GraphQLError("Either password or email is invalid");
-        }
-        const compare = await bcrypt.compare(password, user.password);
-        if (!compare) {
-          throw new GraphQLError("Either password or email is invalid");
-        }
-        return {
-          _id: user._id.toString(),
-          email: user.email,
         };
       } catch (error) {
         throw new GraphQLError(error);
@@ -368,6 +315,30 @@ export const resolvers = {
             response.status,
           );
         }
+      } catch (error) {
+        throw new GraphQLError(error);
+      }
+    },
+    validateUser: async (_, { email, password }) => {
+      try {
+        validateArgsString([email, password]);
+        validatePassword(password);
+        isValidEmail(email);
+        email = email.trim();
+        password = password.trim();
+        const users = await usersCollection();
+        const user = await users.findOne({ email: email });
+        if (!user) {
+          throw new GraphQLError("Either password or email is invalid");
+        }
+        const compare = await bcrypt.compare(password, user.password);
+        if (!compare) {
+          throw new GraphQLError("Either password or email is invalid");
+        }
+        return {
+          _id: user._id.toString(),
+          email: user.email,
+        };
       } catch (error) {
         throw new GraphQLError(error);
       }
