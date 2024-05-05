@@ -6,5 +6,5 @@ export function Chart(props) {
              {!props.hideInfo && <button className="info-button" onClick={() => {location.href="/chart"}}>i</button>}
             <h1>CHART</h1>
         </div>
-    )
+    );
 }

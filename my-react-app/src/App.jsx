@@ -10,7 +10,7 @@ import './App.css'
 import { SocialHub } from './components/SocialHub.jsx'
 import { GenreInfo } from './components/GenreInfo.jsx'
 import { Chart } from './components/Chart.jsx'
-import SignUp from './components/SignUp.jsx'
+import { SignUp } from './components/SignUp.jsx'
 import { CurrentSong } from './components/CurrentSong.jsx'
 
 

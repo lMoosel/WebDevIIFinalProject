@@ -11,23 +11,23 @@ export function SocialHub(props) {
 
             <h3>Online Friends:</h3>
             {
-                onlineFriends.map((friend) => {
-                    return( <OnlineFriend key={friend.name} name={friend.name} currentSong={friend.currentSong} /> )
+                onlineFriends.map((friend, index) => {
+                    return( <OnlineFriend key={index} name={friend.name} currentSong={friend.currentSong} /> )
                 })
             }
 
             <h3>Incoming Friend requests:</h3>
             {
-                friendRequests.map((friend) => {
-                    return (<FriendRequest key={friend.name} name={friend.name}/>)
+                friendRequests.map((friend, index) => {
+                    return (<FriendRequest key={index} name={friend.name}/>)
                 })
             }
 
             <h3>Suggested Friends:</h3>
             {
-                suggestedFriends.map((friend) => {
+                suggestedFriends.map((friend, index) => {
                     return(
-                    <SuggestedFriend key={friend.name} name={friend.name}/>
+                    <SuggestedFriend key={index} name={friend.name}/>
                     )
                 })
             }
