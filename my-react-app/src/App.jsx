@@ -32,8 +32,10 @@ function App() {
     )
   }
   else{*/
+  let user = true
     return (
       <>
+      {user &&
         <CookiesProvider>
             <Header/> <br/> <br/> <br/>
             <Routes>
@@ -49,6 +51,11 @@ function App() {
             </Routes>
             <CurrentSong/>
         </CookiesProvider>
+      }
+
+      {!user &&
+        <></>
+      }
       </>
     )
   //}
