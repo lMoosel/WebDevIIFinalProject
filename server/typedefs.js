@@ -28,7 +28,8 @@ type Mutation {
 type User {
     _id: String!
     email: String!
-    authorized: Boolean
+    username: String!
+    profile_picture: [Image]
     friendRequests: [String]
     friends: [String]
 }

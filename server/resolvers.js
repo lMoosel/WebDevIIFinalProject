@@ -60,18 +60,26 @@ export const resolvers = {
     },
     getUser: async (_, { _id }) => {
       try {
+        const cache = await checkCache(`user:${_id}`);
+        if(cache){
+          return cache;
+        }
         isValidId(_id);
         const users = await usersCollection();
         const user = await users.findOne({ _id: new ObjectId(_id) });
         if (!user) {
           throw new GraphQLError("Could not find user");
         }
-        return {
+        const ret = {
           _id: user._id.toString(),
+          profile_picture: user.profile_picture,
+          username: user.username,
           email: user.email,
           friendRequests: user.friendRequests,
           friends: user.friends,
-        };
+        }
+        await addToCache(`user:${_id}`,ret,60*60)
+        return ret;
       } catch (error) {
         throw new GraphQLError(error);
       }
@@ -335,10 +343,16 @@ export const resolvers = {
         if (!compare) {
           throw new GraphQLError("Either password or email is invalid");
         }
-        return {
+        const ret = {
           _id: user._id.toString(),
+          profile_picture: user.profile_picture,
+          username: user.username,
           email: user.email,
-        };
+          friendRequests: user.friendRequests,
+          friends: user.friends,
+        }
+        await addToCache(`user:${user._id.toString()}`,ret,60*60)
+        return ret;
       } catch (error) {
         throw new GraphQLError(error);
       }
@@ -371,15 +385,21 @@ export const resolvers = {
           response.access_token,
           45 * 60,
         );
-        let record = await insertRecord(
-          usersCollection,
-          `user:${newUser._id.toString()}`,
-          newUser,
-        ); //Could change the key late idc
-        return {
-          _id: record.id,
-          email: record.email,
-        };
+        const users = await usersCollection();
+        let insertedUser= await users.insertOne(newUser);
+        if (!insertedUser.acknowledged) {
+          throw new GraphQLError(`Could not add user`, { extensions: { code: 'BAD_USER_INPUT' } });
+        }
+        const ret = {
+          _id: newUser._id.toString(),
+          profile_picture: newUser.profile_picture,
+          username: newUser.username,
+          email: newUser.email,
+          friendRequests: newUser.friendRequests,
+          friends: newUser.friends,
+        }
+        await addToCache(`user:${newUser._id.toString()}`,ret,60*60)
+        return ret;
       } catch (error) {
         throw new GraphQLError(error);
       }
@@ -426,8 +446,16 @@ export const resolvers = {
         }
 
         await removeFromCache(`user:${_id}`);
-
-        return user;
+        const ret = {
+          _id: user._id.toString(),
+          profile_picture: user.profile_picture,
+          username: user.username,
+          email: user.email,
+          friendRequests: user.friendRequests,
+          friends: user.friends,
+        }
+        await addToCache(`user:${_id}`,ret,60*60)
+        return ret;
       } catch (error) {
         throw new GraphQLError(error);
       }
@@ -469,10 +497,15 @@ export const resolvers = {
         await removeFromCache(`active_token:${_id}`);
         await removeFromCache(`getUserStats:${_id}`);
         await removeFromCache(`user:${_id}`);
-        return {
-          _id: _id,
+        const ret = {
+          _id: user._id.toString(),
+          profile_picture: user.profile_picture,
+          username: user.username,
           email: user.email,
-        };
+          friendRequests: user.friendRequests,
+          friends: user.friends,
+        }
+        return ret;
       } catch (error) {
         throw new GraphQLError(error);
       }
@@ -632,19 +665,6 @@ export const resolvers = {
       } catch (error) {
         throw new GraphQLError(error);
       }
-    },
-  },
-  User: {
-    authorized: async (parentValue) => {
-      const users = await usersCollection();
-      const user = await users.findOne({ _id: new ObjectId(parentValue._id) });
-      if (!user) {
-        return null;
-      }
-      if (!user.refresh_token) {
-        return false;
-      }
-      return true;
     },
   },
 };

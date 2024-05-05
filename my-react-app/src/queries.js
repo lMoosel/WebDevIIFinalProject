@@ -9,9 +9,16 @@ const GET_SPOTIFY_AUTH_URL = gql`
 const CREATE_USER = gql`
     mutation CreateUser($password: String!, $code: String!) {
     createUser(password: $password, code: $code) {
-      _id
-      email
-      authorized
+        _id
+        email
+        username
+        profile_picture {
+            url
+            height
+            width
+        }
+        friends
+        friendRequests
     }
   }
 `;
@@ -34,7 +41,14 @@ const VALIDATE_USER = gql`
     validateUser(email: $email, password: $password) {
         _id
         email
-        authorized
+        profile_picture {
+            url
+            height
+            width
+        }
+        username
+        friends
+        friendRequests
     }
   }
 `;
