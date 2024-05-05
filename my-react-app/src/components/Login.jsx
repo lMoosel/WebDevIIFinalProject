@@ -27,7 +27,9 @@ function Login() {
     }).then(response => {
         console.log('User log in successful');
         if (response.data.validateUser) {
-            setCookie('user', response.data.validateUser._id, { path: '/' }); 
+            delete response.data.friends;
+            delete response.data.friendRequests;
+            setCookie('user', response.data.validateUser, { path: '/' }); 
             navigate('/');
         } else {
             console.error('Error: No user data returned');

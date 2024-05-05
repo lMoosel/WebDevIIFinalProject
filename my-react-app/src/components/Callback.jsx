@@ -46,7 +46,9 @@ function Callback() {
         }).then(response => {
             console.log('User creation successful');
             if (response.data.createUser) {
-                setCookie('user', response.data.createUser._id, { path: '/' }); 
+                delete response.data.createUser.friends;
+                delete response.data.createUser.friendRequests;
+                setCookie('user', response.data.createUser, { path: '/' }); 
                 navigate('/');
             } else {
                 console.error('Error: No user data returned');

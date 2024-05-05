@@ -17,8 +17,8 @@ import Authorize from './components/Authorize.jsx'
 import Callback from './components/Callback.jsx'
 
 function App() {
-  const [count, setCount] = useState(0)
-  const [cookies, setCookie] = useCookies(['user'])
+  // const [count, setCount] = useState(0)
+  const [cookies, setCookie] = useCookies(['user']);
   /*
   const [onHomeScreen, setHomeScreen] = usfeState(true)
 
@@ -34,7 +34,7 @@ function App() {
     )
   }
   else{*/
-  let user = cookies.user
+  let user = cookies.user;
     return (
       <>
       {user &&
@@ -61,7 +61,7 @@ function App() {
   </CookiesProvider>
       }
       </>
-    )
+    );
   //}
 }
 
