@@ -36,9 +36,9 @@ function App() {
             <Header logout={handleLogout} /> <br/> <br/> <br/>
             <Routes>
               <Route path="/" element={<StatsScreen />} />
-              <Route path="/socialhub" element={<SocialHub />} />
-              <Route path="/topcategories" element={<GenreInfo />} />
-              <Route path="/chart" element={<Chart />} />
+              <Route path="/socialhub" element={<SocialHub hideInfo={true}/>}/>
+               <Route path="/topcategories" element={<GenreInfo hideInfo={true}/>}/>
+               <Route path="/chart" element={<Chart hideInfo={true}/>}/>
               <Route path="*" element={<Navigate replace to="/" />} />
             </Routes>
             <CurrentSong />
