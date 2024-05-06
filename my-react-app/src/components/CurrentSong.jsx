@@ -17,12 +17,13 @@ export function CurrentSong (props) {
         }
     });
 
-    if(!loading && true) {
+    if(!loading && false) {
         console.log("Error: ", error)
     }
 
     if(!loading) {
         console.log(data.getSpotifyCurrentlyPlaying)
+        console.log("user's id: ", user._id)
     }
 
     return (
@@ -31,7 +32,7 @@ export function CurrentSong (props) {
             {error && <p>Error: {error.message}</p>}
             {!loading && !error && !data && <p>Unable to fetch authentication URL, please try again later.</p>}
             {data && data.getSpotifyCurrentlyPlaying && <>
-                <span id="cs-span"><h1 id="current-song">{ data.getSpotifyCurrentlyPlaying.item.name } by {data.getSpotifyCurrentlyPlaying.item.artists[0].name}</h1></span>
+                <div id="cs-div"><h1 id="current-song">{ data.getSpotifyCurrentlyPlaying.item.name } by {data.getSpotifyCurrentlyPlaying.item.artists[0].name}</h1></div>
             </>}
             {data && !data.getSpotifyCurrentlyPlaying && <>
                 <p>No song currently playing!</p>

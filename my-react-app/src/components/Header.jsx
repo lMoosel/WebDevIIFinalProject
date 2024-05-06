@@ -5,6 +5,8 @@ export function Header(props) {
 
     let user = cookies.user;
     
+    console.log("user: ", user)
+
     return (
         <div id="header">
 
@@ -12,11 +14,14 @@ export function Header(props) {
                 <div>
                     {/* <span><a>PROFILE PICTURE</a></span> */}
                     { user.profile_picture && user.profile_picture.length ?
-                        <img 
+                        <div id="pfp-div"><img 
                             src={ user.profile_picture[0].url }
                             alt="Your profile picture"
-                        /> :
-                        <span><a>No profile picture found...</a></span>
+                        /></div> :
+                        <div id="pfp-div"><img src="https://upload.wikimedia.org/wikipedia/commons/thumb/b/b5/Windows_10_Default_Profile_Picture.svg/2048px-Windows_10_Default_Profile_Picture.svg.png"></img></div>
+                    }
+                    { user.username && 
+                        <a id="username-header">{user.username}</a>
                     }
                     <span id="Login-Logout-button">
                         <button>Logout</button>
