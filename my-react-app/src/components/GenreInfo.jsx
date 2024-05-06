@@ -23,7 +23,7 @@ export function GenreInfo(props) {
             });
         
         if(!loading) {
-            data_tracks = data;
+            data_tracks = data.getSpotifyTopTracks;
             loading_tracks = loading;
             console.log("top tracks: ", data_tracks)
 
@@ -42,14 +42,13 @@ export function GenreInfo(props) {
         })
 
         if(!loading) {
-            data_artists = data
+            data_artists = data.getSpotifyTopArtists;
             loading_artists = loading;
             console.log("top artists: ", data_artists)
         }
     }
 
-    data_artists = {items: [{"name":"blur"}, {"name":"Arctic Monkeys"}]}
-    data_tracks = {items: [{"name":"The Narcissist"}, {"name":"The Jeweller's Hands"}]}
+    
 
 
     return(
@@ -58,7 +57,7 @@ export function GenreInfo(props) {
             <h1>Your Favorties</h1>
 
             <h3>Top Songs:</h3>
-            {!loading_tracks && 
+            {!loading_tracks && data_tracks &&
                 data_tracks.items.map((song) => {
                     return (
                         <div key={song.name}>
@@ -69,7 +68,7 @@ export function GenreInfo(props) {
             }
 
             <h3>Top Artists:</h3>
-            {!loading_tracks && 
+            {!loading_tracks && data_artists &&
                 data_artists.items.map((artist) => {
                     return (
                         <div key={artist.name}>

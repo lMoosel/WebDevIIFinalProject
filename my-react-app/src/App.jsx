@@ -48,7 +48,7 @@ function App() {
             <Route path="/login" element={<Login />} />
             <Route path="/callback" element={<Callback />} />
             <Route path="/" element={<Authorize />} />
-            <Route path="*" element={<Navigate replace to="/login" />} />
+            <Route path="*" element={<Navigate replace to="/" />} />
           </Routes>
         )}
     </CookiesProvider>
