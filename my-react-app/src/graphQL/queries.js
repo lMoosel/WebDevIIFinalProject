@@ -96,9 +96,11 @@ const GET_SPOTIFY_TRACK = gql`
     getSpotifyTrack (_id: $id, trackId: $trackId) {
       album {
         id
+        name
       }
       artists {
         id
+        name
       }
       available_markets
       disc_number
@@ -273,6 +275,5 @@ const exported = {
     GET_SPOTIFY_TRACK_AUDIO_FEATURES,
     GET_USER,
     GET_USER_STATS
-    
 }
 export default exported;
