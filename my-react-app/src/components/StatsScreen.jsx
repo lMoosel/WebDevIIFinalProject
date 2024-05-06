@@ -10,6 +10,8 @@ export function StatsScreen() {
             <span className="side-span"><GenreInfo hideInfo={false} /></span>
             <span className="center-span"><Chart hideInfo={false} /></span>
             <span className="side-span"><SocialHub hideInfo={false} /></span>
+            
+           
         </div>
         </>
     )
