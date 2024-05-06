@@ -3,7 +3,7 @@ import redis from "redis";
 
 const redisConnectionURL = process.env.REDIS_CONNECTION_URL || "redis://localhost:6379";
 
-const ENABLED = false;
+const ENABLED = true;
 
 let client = null;
 if(ENABLED) {
@@ -33,7 +33,9 @@ const checkCache = async (key) => {
     return null
   }
 };
-
+const push = async (key,value) => {
+  await client.rPush(key,value);
+}
 /**
  * Add a value to the cache
  * @param {string} key - The key to store the value under
@@ -66,4 +68,4 @@ const clearUserCache = async  (_id) => {
   }
 }
 
-export {client, checkCache, addToCache, removeFromCache, clearUserCache}
+export {push, client, checkCache, addToCache, removeFromCache, clearUserCache}

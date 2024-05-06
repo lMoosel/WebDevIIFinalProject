@@ -7,6 +7,7 @@ import {
   addToCache,
   removeFromCache,
   clearUserCache,
+  push
 } from "./cache.js";
 import { isValidId } from "../helpers.js";
 import { ObjectId } from "mongodb";
@@ -67,7 +68,8 @@ export const handleResponse = async (response, key, _id, exp, hasParams) => {
 
   if (!cache) {
     if (hasParams) {
-      await client.rPush(`spotify:${_id}`, key);
+      await push(`spotify:${_id}`, key);
+      
     }
     await addToCache(key, response, exp);
     return response.data;
