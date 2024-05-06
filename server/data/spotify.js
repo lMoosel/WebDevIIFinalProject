@@ -162,24 +162,77 @@ export const get = async (_id, key, exp, url, params = null) => {
   return handledResponse;
 };
 
-export const getFavoriteAlbums = () => {
-  //No Explicit API
-  return true;
+export const getFavoriteArtists = async (_id, time_range, limit = 10) => {
+  const url = "https://api.spotify.com/v1/me/top/artists";
+  const params = {
+    time_range,
+    limit,
+  };
+
+  const data = await get(
+    _id,
+    `getFavoriteArtists:${_id + limit}`,
+    60 * 60,
+    url,
+    params,
+  );
+
+  return data;
 };
 
-export const getFavoriteGenres = () => {
-  //No Explicit API
-  return null;
+export const getFavoriteTracks = async (_id, time_range, limit = 10) => {
+  const url = "https://api.spotify.com/v1/me/top/tracks";
+  const params = {
+    time_range,
+    limit,
+  };
+
+  const data = await get(
+    _id,
+    `getFavoriteTracks:${_id + limit}`,
+    60 * 60,
+    url,
+    params,
+  );
+
+  return data;
 };
 
-export const getFavoriteArtists = () => {
-  //https://developer.spotify.com/documentation/web-api/reference/get-users-top-artists-and-tracks
-  return null;
+export const getFavoriteAlbums = async (_id, time_range, limit = 10) => {
+  // Use 50 tracks to decide favorite
+  const data = await getFavoriteTracks(_id, time_range, 50);
+  const albums = data.items.map((album) => album.album.name);
+
+  const counts = {};
+  for (const album of albums) {
+    counts[album] = counts[album] ? counts[album] + 1 : 1;
+  }
+
+  // Sort descending
+  let top = Object.keys(counts).sort((a, b) => counts[b] > counts[a]);
+  top = top.filter((album) => counts[album] > 1);
+
+  return top.slice(0, limit);
 };
 
-export const getFavoriteSongs = () => {
-  //https://developer.spotify.com/documentation/web-api/reference/get-users-top-artists-and-tracks
-  return null;
+export const getFavoriteGenres = async (_id, time_range, limit = 10) => {
+  // Use 50 tracks to decide favorite
+  const data = await getFavoriteArtists(_id, time_range, 50);
+
+  // Can only get genre from artist
+  const genres = data.items.map((artist) => artist.genres).flat();
+
+  const counts = {};
+  // Counts frequenct of genre
+  for (const genre of genres) {
+    counts[genre] = counts[genre] ? counts[genre] + 1 : 1;
+  }
+
+  // Sort descending
+  let top = Object.keys(counts).sort((a, b) => counts[b] - counts[a]);
+  top = top.filter((genre) => counts[genre] > 1);
+
+  return top.slice(0, limit);
 };
 
 export const getRecentTracks = async (_id, limit = 20) => {
@@ -188,7 +241,13 @@ export const getRecentTracks = async (_id, limit = 20) => {
     limit,
   };
 
-  const data = await get(_id, `getRecentTracks:${_id}`, 2 * 60, url, params);
+  const data = await get(
+    _id,
+    `getRecentTracks:${_id + limit}`,
+    2 * 60,
+    url,
+    params,
+  );
 
   return data;
 };

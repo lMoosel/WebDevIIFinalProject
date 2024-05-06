@@ -40,6 +40,8 @@ import {
   getAxiosCall,
   get,
   getRecentTracks,
+  getFavoriteGenres,
+  getFavoriteAlbums,
 } from "./data/spotify.js";
 
 export const resolvers = {
@@ -138,6 +140,20 @@ export const resolvers = {
           params,
         );
         return response;
+      } catch (error) {
+        throw new GraphQLError(error);
+      }
+    },
+    getSpotifyTopAlbums: async (_, { _id, time_range, limit }) => {
+      try {
+        return await getFavoriteAlbums(_id, time_range, limit);
+      } catch (error) {
+        throw new GraphQLError(error);
+      }
+    },
+    getSpotifyTopGenres: async (_, { _id, time_range, limit }) => {
+      try {
+        return await getFavoriteGenres(_id, time_range, limit);
       } catch (error) {
         throw new GraphQLError(error);
       }
