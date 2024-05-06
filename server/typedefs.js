@@ -2,6 +2,8 @@ export const typeDefs = `#graphql
 type Query {
     getSpotifyAuthUrl: String
     getUser(_id: String!): User
+    getSuggestedFriends(_id: String!): [Friend]
+    getOnlineFriends(_id: String!): [OnlineFriend]
     getUserStats(_id: String!): StatResponse
     getSpotifyTopTracks(_id: String!, time_range: String!, offset: Int!, limit: Int!): TracksResponse
     getSpotifyTopArtists(_id: String!, time_range: String!, offset: Int!, limit: Int!): ArtistsResponse
@@ -36,7 +38,18 @@ type User {
     friendRequests: [String]
     friends: [String]
 }
-
+type Friend {
+    _id: String!
+    username: String!
+    profile_picture: [Image]
+}
+type OnlineFriend {
+    _id: String!
+    username: String!
+    profile_picture: [Image]
+    track_name: String
+    trackid: String
+}
 type AutProfile {
     display_name: String
     email: String

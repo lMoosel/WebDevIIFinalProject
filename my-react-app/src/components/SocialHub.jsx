@@ -1,9 +1,26 @@
+import { CookiesProvider, useCookies } from 'react-cookie';
+import { useQuery } from '@apollo/client';
+import queries from '../graphQL/index.js';  
 export function SocialHub(props) {
+    const [cookies, setCookie] = useCookies(['user']);
+    let userid = cookies.user._id;
+    console.log("hi",userid)
+    const { data: userData, loading: userLoading, error: userError } = useQuery(queries.GET_USER, {
+        variables: { id: userid }
+    });
 
-    let onlineFriends = [{name:"Charles", currentSong:"N/A"}, {name:"Luke", currentSong:"Song"}, {name:"Alex", currentSong:"Other Song"}]
-    let friendRequests = [{name:"Olivia"}]
-    let suggestedFriends = [{name:"Zack"}]
+    const { data: onlineFriendsData, loading: onlineFriendsLoading, error: onlineFriendsError } = useQuery(queries.GET_ONLINE_FRIENDS, {
+        variables: { id: userid },
+        pollInterval: 30000
+    });
 
+    const { data: suggestedFriendsData, loading: suggestedFriendsLoading, error: suggestedFriendsError } = useQuery(queries.GET_SUGGESTED_FRIENDS, {
+        variables: { id: userid }
+    });
+
+    if (userLoading || onlineFriendsLoading || suggestedFriendsLoading) return <p>Loading...</p>;
+    if (userError || onlineFriendsError || suggestedFriendsError) return <p>Error : Please try again</p>;
+    console.log(suggestedFriendsData)
     return (
         <div id="Social-hub-div">
             {!props.hideInfo && <button className="info-button" onClick={() => {location.href="/socialhub"}}>i</button>}
@@ -11,25 +28,23 @@ export function SocialHub(props) {
 
             <h3>Online Friends:</h3>
             {
-                onlineFriends.map((friend, index) => {
-                    return( <OnlineFriend key={index} name={friend.name} currentSong={friend.currentSong} /> )
-                })
+                onlineFriendsData?.getOnlineFriends.map((friend, index) => (
+                    <OnlineFriend key={index} name={friend.username} currentSong={friend.track_name} />
+                ))
             }
 
             <h3>Incoming Friend requests:</h3>
             {
-                friendRequests.map((friend, index) => {
-                    return (<FriendRequest key={index} name={friend.name}/>)
-                })
+                userData?.getUser.friendRequests.map((friend, index) => (
+                    <FriendRequest key={index} name={friend}/>
+                ))
             }
 
             <h3>Suggested Friends:</h3>
             {
-                suggestedFriends.map((friend, index) => {
-                    return(
-                    <SuggestedFriend key={index} name={friend.name}/>
-                    )
-                })
+                suggestedFriendsData?.getSuggestedFriends.map((friend, index) => (
+                    <SuggestedFriend key={index} name={friend.username} />
+                ))
             }
         </div>
     )
