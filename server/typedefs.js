@@ -104,7 +104,7 @@ type Followers {
 }
 type Artist {
     external_urls: ExternalUrls
-    followers : Followers
+    followers: Followers
     genres: [String]
     href: String
     id: String
@@ -171,8 +171,6 @@ type Album {
     type: String!
     uri: String!
     artists: [ArtistSimp]
-
-
 }
 
 type CurrentlyPlayingResponse {
