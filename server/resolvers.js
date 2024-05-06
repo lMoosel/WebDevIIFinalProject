@@ -5,6 +5,7 @@ import { ObjectId } from "mongodb";
 import axios from "axios";
 import { users as usersCollection } from "./config/mongoCollections.js";
 import bcrypt from "bcrypt";
+import { Graph } from "redis";
 
 import {
   client,
@@ -38,15 +39,15 @@ import {
   handleResponse,
   getAxiosCall,
   get,
+  getRecentTracks,
 } from "./data/spotify.js";
-import { Graph } from "redis";
 
 export const resolvers = {
   Query: {
     getSpotifyAuthUrl: () => {
       const state = uuid();
       const scope =
-        "user-read-private user-read-email user-top-read user-read-currently-playing"; //This is important, change this if u want to use calls that need diff perms
+        "user-read-private user-read-email user-top-read user-read-currently-playing user-read-recently-played"; //This is important, change this if u want to use calls that need diff perms
       const clientId = process.env.SPOTIFY_CLIENT_ID;
       const redirectUri = process.env.REDIRECT_URI;
       const params = new URLSearchParams({
@@ -61,7 +62,7 @@ export const resolvers = {
     getUser: async (_, { _id }) => {
       try {
         const cache = await checkCache(`user:${_id}`);
-        if(cache){
+        if (cache) {
           return cache;
         }
         isValidId(_id);
@@ -77,8 +78,8 @@ export const resolvers = {
           email: user.email,
           friendRequests: user.friendRequests,
           friends: user.friends,
-        }
-        await addToCache(`user:${_id}`,ret,60*60)
+        };
+        await addToCache(`user:${_id}`, ret, 60 * 60);
         return ret;
       } catch (error) {
         throw new GraphQLError(error);
@@ -217,6 +218,15 @@ export const resolvers = {
         throw new GraphQLError(error);
       }
     },
+    getSpotifyRecentTracks: async (_, { _id, limit }) => {
+      isValidId(_id);
+
+      if (limit < 0 || limit > 100) {
+        throw new GraphQLError("limit needs to be between 0 and 100");
+      }
+
+      return await getRecentTracks(_id, limit);
+    },
     getSpotifyTrackAudioFeatures: async (_, { _id, trackId }) => {
       try {
         const response = await get(
@@ -350,8 +360,8 @@ export const resolvers = {
           email: user.email,
           friendRequests: user.friendRequests,
           friends: user.friends,
-        }
-        await addToCache(`user:${user._id.toString()}`,ret,60*60)
+        };
+        await addToCache(`user:${user._id.toString()}`, ret, 60 * 60);
         return ret;
       } catch (error) {
         throw new GraphQLError(error);
@@ -386,9 +396,11 @@ export const resolvers = {
           45 * 60,
         );
         const users = await usersCollection();
-        let insertedUser= await users.insertOne(newUser);
+        let insertedUser = await users.insertOne(newUser);
         if (!insertedUser.acknowledged) {
-          throw new GraphQLError(`Could not add user`, { extensions: { code: 'BAD_USER_INPUT' } });
+          throw new GraphQLError(`Could not add user`, {
+            extensions: { code: "BAD_USER_INPUT" },
+          });
         }
         const ret = {
           _id: newUser._id.toString(),
@@ -397,8 +409,8 @@ export const resolvers = {
           email: newUser.email,
           friendRequests: newUser.friendRequests,
           friends: newUser.friends,
-        }
-        await addToCache(`user:${newUser._id.toString()}`,ret,60*60)
+        };
+        await addToCache(`user:${newUser._id.toString()}`, ret, 60 * 60);
         return ret;
       } catch (error) {
         throw new GraphQLError(error);
@@ -453,8 +465,8 @@ export const resolvers = {
           email: user.email,
           friendRequests: user.friendRequests,
           friends: user.friends,
-        }
-        await addToCache(`user:${_id}`,ret,60*60)
+        };
+        await addToCache(`user:${_id}`, ret, 60 * 60);
         return ret;
       } catch (error) {
         throw new GraphQLError(error);
@@ -504,7 +516,7 @@ export const resolvers = {
           email: user.email,
           friendRequests: user.friendRequests,
           friends: user.friends,
-        }
+        };
         return ret;
       } catch (error) {
         throw new GraphQLError(error);

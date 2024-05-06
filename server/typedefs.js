@@ -11,6 +11,7 @@ type Query {
     getSpotifyAlbum(_id: String!, albumId: String!): Album
     getSpotifySearch(_id: String!, query: String!, type: [String!], limit: Int!, offset: Int!): SearchResponse
     getSpotifyCurrentlyPlaying(_id: String!): CurrentlyPlayingResponse
+    getSpotifyRecentTracks(_id: String!, limit: Int!): RecentTracksResponse
     getSpotifyTrackAudioFeatures(_id: String!, trackId: String!): AudioFeatureResponse
 }
 
@@ -33,16 +34,13 @@ type User {
     friendRequests: [String]
     friends: [String]
 }
-type SearchResponse {
-    tracks: TracksResponse
-    artists: ArtistsResponse
-    albums: AlbumsResponse
-}
+
 type AutProfile {
     display_name: String
     email: String
     images: [Image]
 }
+
 type SpotifyProfile {
     country: String
     display_name: String
@@ -57,13 +55,31 @@ type SpotifyProfile {
     type: String
     uri: String
 }
+
 type Followers {
     href: String
     total: Int
 }
+
 type ExplicitContent {
     filter_enabled: Boolean
     filter_locked: Boolean
+}
+
+type SearchResponse {
+    tracks: TracksResponse
+    artists: ArtistsResponse
+    albums: AlbumsResponse
+}
+
+type RecentTracksResponse {
+    href: String!
+    limit: Int!
+    next: String
+    offset: Int!
+    previous: String
+    total: Int!
+    items: [PlayHistory!]
 }
 type TracksResponse {
     href: String!
@@ -74,6 +90,7 @@ type TracksResponse {
     total: Int!
     items: [Track!]
 }
+
 type AlbumsResponse {
     href: String!
     limit: Int!
@@ -94,6 +111,10 @@ type ArtistsResponse {
     items: [Artist!]  
 }
 
+type PlayHistory {
+  track: Track!
+  played_at: String!
+}
 
 type ExternalUrls {
     spotify: String

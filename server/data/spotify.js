@@ -7,7 +7,7 @@ import {
   addToCache,
   removeFromCache,
   clearUserCache,
-  push
+  push,
 } from "./cache.js";
 import { isValidId } from "../helpers.js";
 import { ObjectId } from "mongodb";
@@ -69,7 +69,6 @@ export const handleResponse = async (response, key, _id, exp, hasParams) => {
   if (!cache) {
     if (hasParams) {
       await push(`spotify:${_id}`, key);
-      
     }
     await addToCache(key, response, exp);
     return response.data;
@@ -152,7 +151,7 @@ export const get = async (_id, key, exp, url, params = null) => {
   if (params) {
     hasParams = true;
   }
-  
+
   const handledResponse = await handleResponse(
     response,
     key,
@@ -161,11 +160,6 @@ export const get = async (_id, key, exp, url, params = null) => {
     hasParams,
   );
   return handledResponse;
-};
-
-export const getCurrentSong = () => {
-  //https://developer.spotify.com/documentation/web-api/reference/get-information-about-the-users-current-playback
-  return false;
 };
 
 export const getFavoriteAlbums = () => {
@@ -188,11 +182,6 @@ export const getFavoriteSongs = () => {
   return null;
 };
 
-export const getAverageListeningSession = () => {
-  //Not sure if this one is possible
-  return null;
-};
-
 export const getRecentTracks = async (_id, limit = 20) => {
   const url = "https://api.spotify.com/v1/me/player/recently-played";
   const params = {
@@ -201,5 +190,5 @@ export const getRecentTracks = async (_id, limit = 20) => {
 
   const data = await get(_id, `getRecentTracks:${_id}`, 2 * 60, url, params);
 
-  const recentTracks = data.items;
+  return data;
 };
