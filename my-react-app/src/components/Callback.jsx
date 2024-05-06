@@ -79,7 +79,7 @@ function Callback() {
   if (isAuthorized && spotifyData) {
     const { display_name, email, images } = spotifyData.authorizeSpotify;
 
-    setUsername(display_name);
+    // setUsername(display_name);
     return (
       <div>
         <h1>Authorization Successful</h1>

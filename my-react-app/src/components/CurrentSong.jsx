@@ -23,8 +23,11 @@ export function CurrentSong (props) {
             {loading && <p>Loading...</p>}
             {error && <p>Error: {error.message}</p>}
             {!loading && !error && !data && <p>Unable to fetch authentication URL, please try again later.</p>}
-            {data && <>
+            {data && data.getSpotifyCurrentlyPlaying && <>
                 <p>Current song playing is: { data.getSpotifyCurrentlyPlaying.item.name }</p>
+            </>}
+            {data && !data.getSpotifyCurrentlyPlaying && <>
+                <p>No song currently playing!</p>
             </>}
         </div>
     )
