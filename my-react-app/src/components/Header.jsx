@@ -18,7 +18,9 @@ export function Header(props) {
                         /> :
                         <span><a>No profile picture found...</a></span>
                     }
-                    <span id="Login-Logout-button"><button>Logout</button></span>
+                    <span id="Login-Logout-button">
+                        <button>Logout</button>
+                    </span>
                 </div>
             }
 

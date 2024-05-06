@@ -6,6 +6,23 @@ const GET_SPOTIFY_AUTH_URL = gql`
   }
 `;
 
+const GET_SPOTIFY_CURRENTLY_PLAYING = gql`
+  query GetSpotifyCurrentlyPlaying ($id: String!) {
+    getSpotifyCurrentlyPlaying (_id: $id) {
+      repeat_state
+      shuffle_state
+      # timestamp
+      progress_ms
+      is_playing
+      item {
+        id
+        name
+      }
+      currently_playing_type
+    }
+  }
+`;
+
 const CREATE_USER = gql`
     mutation CreateUser($password: String!, $code: String!) {
     createUser(password: $password, code: $code) {
@@ -54,6 +71,7 @@ const VALIDATE_USER = gql`
 `;
 const exported = {
     GET_SPOTIFY_AUTH_URL,
+    GET_SPOTIFY_CURRENTLY_PLAYING,
     CREATE_USER,
     AUTHORIZE_SPOTIFY,
     VALIDATE_USER

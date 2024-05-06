@@ -8,6 +8,8 @@ import {
   removeFromCache,
   clearUserCache,
 } from "./cache.js";
+import { isValidId } from "../helpers.js";
+import { ObjectId } from "mongodb";
 
 export const getAccessToken = async (_id) => {
   isValidId(_id);
@@ -148,6 +150,7 @@ export const get = async (_id, key, exp, url, params = null) => {
   if (params) {
     hasParams = true;
   }
+  
   const handledResponse = await handleResponse(
     response,
     key,
