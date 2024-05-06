@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import queries from '../queries.js';
+import queries from '../graphQL/index.js';
 import { useNavigate } from 'react-router-dom';
 import { useMutation } from '@apollo/client';
 import { CookiesProvider, useCookies } from 'react-cookie';

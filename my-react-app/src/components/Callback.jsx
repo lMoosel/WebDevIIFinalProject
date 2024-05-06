@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useMutation } from "@apollo/client";
-import queries from "../queries.js";
+import queries from '../graphQL/index.js';
 import { CookiesProvider, useCookies } from "react-cookie";
 function Callback() {
   const navigate = useNavigate();

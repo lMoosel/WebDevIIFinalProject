@@ -1,6 +1,6 @@
 import React from 'react';
 import { useQuery } from '@apollo/client';
-import queries from '../queries.js';
+import queries from '../graphQL/index.js';
 import { Link } from 'react-router-dom';
 function Authorize() {
     const { data, loading, error } = useQuery(queries.GET_SPOTIFY_AUTH_URL);
