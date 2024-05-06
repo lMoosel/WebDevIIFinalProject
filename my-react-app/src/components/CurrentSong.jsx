@@ -22,7 +22,7 @@ export function CurrentSong (props) {
     }
 
     if(!loading) {
-        console.log(data.getSpotifyCurrentlyPlaying)
+        try {console.log(data.getSpotifyCurrentlyPlaying)} catch {}
         console.log("user's id: ", user._id)
     }
 
