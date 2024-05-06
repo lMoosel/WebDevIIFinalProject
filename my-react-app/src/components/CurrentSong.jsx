@@ -14,7 +14,8 @@ export function CurrentSong (props) {
     const { data, loading, error } = useQuery(queries.GET_SPOTIFY_CURRENTLY_PLAYING, {
         variables: {
             id: user._id
-        }
+        },
+        pollInterval: 30000
     });
 
     if(!loading && false) {

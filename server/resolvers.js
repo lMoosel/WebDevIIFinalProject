@@ -58,7 +58,7 @@ export const resolvers = {
             const playingStatus = await get(
               friendId,
               `getSpotifyCurrentlyPlaying:${friendId}`,
-              15,
+              30,
               "https://api.spotify.com/v1/me/player/currently-playing",
             );
             if (playingStatus && playingStatus.is_playing) {
@@ -68,7 +68,7 @@ export const resolvers = {
                 username: friendDetails.username,
                 profile_picture: friendDetails.profile_picture,
                 track_name: playingStatus.item.name,
-                trackid: playingStatus.iten.id
+                trackid: playingStatus.item.id
               });
             }
           } catch (error2) {
@@ -277,7 +277,7 @@ export const resolvers = {
         const response = await get(
           _id,
           `getSpotifyCurrentlyPlaying:${_id}`,
-          15,
+          30,
           "https://api.spotify.com/v1/me/player/currently-playing",
         );
         return response;
