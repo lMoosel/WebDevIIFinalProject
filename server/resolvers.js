@@ -96,8 +96,8 @@ export const resolvers = {
         }
         const friends = user.friends.map(id => new ObjectId(id));
         const suggested = await users.find({
-          _id: { $nin: friends},
-          _id: { $ne: new ObjectId(_id) } 
+          _id: { $nin: friends, $ne: new ObjectId(_id) },
+          friendRequests: { $nin: [_id] }
         }).toArray();
   
         const result = suggested.map(user => ({
@@ -641,6 +641,7 @@ export const resolvers = {
         throw new GraphQLError("Something went wrong when updating friend");
 
       await removeFromCache(`user:${friendId}`);
+      await removeFromCache(`suggestedFriends:${userId}`)
 
       return "Friend Request Sent";
     },
