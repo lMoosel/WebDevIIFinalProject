@@ -100,7 +100,9 @@ export const resolvers = {
           friendRequests: { $nin: [_id] }
         }).toArray();
   
-        const result = suggested.map(user => ({
+        const filteredSuggested = suggested.filter(suggestedUser => !user.friendRequests.some(request => request === suggestedUser._id.toString()));
+
+        const result = filteredSuggested.map(user => ({
           _id: user._id.toString(),
           username: user.username,
           profile_picture: user.profile_picture,
@@ -117,6 +119,7 @@ export const resolvers = {
       try {
         const cache = await checkCache(`friendRequests:${_id}`);
         if (cache) {
+          console.log("Grabbing from friend requests cache")
           return cache;
         }
         isValidId(_id);
@@ -674,7 +677,9 @@ export const resolvers = {
         throw new GraphQLError("Something went wrong when updating friend");
 
       await removeFromCache(`user:${friendId}`);
+      await removeFromCache(`friendRequests:${friendId}`);
       await removeFromCache(`suggestedFriends:${userId}`)
+      await removeFromCache(`suggestedFriends:${friendId}`)
 
       return "Friend Request Sent";
     },
@@ -702,6 +707,8 @@ export const resolvers = {
         }
 
         // Edge Cases
+        console.log("Testing this case")
+        console.log(user.friendRequests)
         if (!user.friendRequests.includes(friendId))
           throw new GraphQLError(
             "You don't have a pending request from this person",
@@ -728,8 +735,10 @@ export const resolvers = {
             throw new GraphQLError("Something went wrong when updating user");
 
           await removeFromCache(`user:${userId}`);
+          await removeFromCache(`suggestedFriends:${userId}`)
           await removeFromCache(`friendRequests:${userId}`);
           await removeFromCache(`user:${friendId}`);
+          await removeFromCache(`suggestedFriends:${friendId}`)
 
           return "Friend request accepted";
         } else if (action === "reject") {
@@ -742,8 +751,12 @@ export const resolvers = {
 
           if (!updatedUser)
             throw new GraphQLError("Something went wrong when updating user");
-
+          
           await removeFromCache(`user:${userId}`);
+          await removeFromCache(`suggestedFriends:${userId}`)
+          await removeFromCache(`friendRequests:${userId}`);
+          await removeFromCache(`user:${friendId}`);
+          await removeFromCache(`suggestedFriends:${friendId}`)
 
           return "Friend request rejected";
         } else throw new GraphQLError("Action not recognized");
@@ -789,7 +802,9 @@ export const resolvers = {
           throw new GraphQLError("Something went wrong when removing friend");
 
         await removeFromCache(`user:${userId}`);
+        await removeFromCache(`suggestedFriends:${userId}`)
         await removeFromCache(`user:${friendId}`);
+        await removeFromCache(`suggestedFriends:${friendId}`)
 
         return "Removed friend";
       } catch (error) {

@@ -205,6 +205,19 @@ const GET_SPOTIFY_PROFILE = gql`
     }
   }`;
 
+  const GET_SPOTIFY_TOP_ALBUMS = gql`
+  query Query($id: String!, $timeRange: String!, $limit: Int!) {
+    getSpotifyTopAlbums(_id: $id, time_range: $timeRange, limit: $limit) {
+      name
+      id
+    }
+  }`;
+
+  const GET_SPOTIFY_TOP_GENRES = gql`
+  query Query($id: String!, $timeRange: String!, $limit: Int!) {
+    getSpotifyTopGenres(_id: $id, time_range: $timeRange, limit: $limit)
+  }`;
+
   const GET_SPOTIFY_TRACK_AUDIO_FEATURES = gql`
   query Query($id: String!, $trackId: String!) {
     getSpotifyTrackAudioFeatures(_id: $id, trackId: $trackId) {
@@ -303,6 +316,8 @@ const exported = {
     GET_SPOTIFY_SEARCH,
     GET_SPOTIFY_TOP_ARTISTS,
     GET_SPOTIFY_TOP_TRACKS,
+    GET_SPOTIFY_TOP_ALBUMS,
+    GET_SPOTIFY_TOP_GENRES,
     GET_SPOTIFY_TRACK_AUDIO_FEATURES,
     GET_USER,
     GET_USER_STATS,
