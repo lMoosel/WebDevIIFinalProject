@@ -1,5 +1,5 @@
 import { Link, useNavigate } from "react-router-dom";
-// import ApexCharts from 'apexcharts';
+import { useEffect, useState } from "react"; // Import useEffect and useState
 import Chart from "react-apexcharts";
 import { CookiesProvider, useCookies } from 'react-cookie';
 import { useQuery } from '@apollo/client';
@@ -10,18 +10,24 @@ export function ChartComponent (props) {
     const [cookies, setCookie] = useCookies(['user']);
     let user = cookies.user;
 
-    let query1Results, query2Results;
+    const [trackId, setTrackId] = useState(null); // Track the current trackId with state
 
-    query1Results = useQuery(queries.GET_SPOTIFY_CURRENTLY_PLAYING, {
+    const query1Results = useQuery(queries.GET_SPOTIFY_CURRENTLY_PLAYING, {
         variables: {
             id: user._id
         },
         pollInterval: 30 * 1000
     });
 
-    let trackId = query1Results?.data?.getSpotifyCurrentlyPlaying?.item?.id;
+    useEffect(() => {
+        // Set the trackId when the data changes
+        if (query1Results.data && query1Results.data.getSpotifyCurrentlyPlaying) {
+            const newTrackId = query1Results.data.getSpotifyCurrentlyPlaying.item.id;
+            setTrackId(newTrackId);
+        }
+    }, [query1Results.data]);
 
-    query2Results = useQuery(queries.GET_SPOTIFY_TRACK_AUDIO_FEATURES, {
+    const query2Results = useQuery(queries.GET_SPOTIFY_TRACK_AUDIO_FEATURES, {
         variables: {
             id: user._id,
             trackId
@@ -30,16 +36,8 @@ export function ChartComponent (props) {
         pollInterval: 0
     });
 
-    console.log(query1Results, query2Results);
-
-    // if (query1Results && query1Results.data && query1Results.data.getSpotifyCurrentlyPlaying) {
-        
-    // } else {
-    //     query2Results = null;
-    // }
-
     let chartData;
-    if (query2Results?.data) {
+    if (query2Results.data) {
         let songName = query1Results.data.getSpotifyCurrentlyPlaying.item.name;
         let audioFeatures = query2Results.data.getSpotifyTrackAudioFeatures;
         chartData = {
@@ -78,10 +76,9 @@ export function ChartComponent (props) {
         };
     }
 
-
     return (
         <div id="Chart-div">
-             {!props.hideInfo && <button className="info-button" onClick={() => {location.href="/chart"}}>i</button>}
+            {!props.hideInfo && <button className="info-button" onClick={() => {location.href="/chart"}}>i</button>}
             <h1>CHART</h1>
 
             { chartData && <Chart

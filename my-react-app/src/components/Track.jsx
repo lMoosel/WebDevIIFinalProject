@@ -1,5 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { useQuery } from '@apollo/client';
+import Chart from "react-apexcharts";
 import queries from '../graphQL/index.js';  
 import { CookiesProvider, useCookies } from 'react-cookie';
 import { Link, useParams } from 'react-router-dom';
@@ -10,19 +11,62 @@ export function Track(props) {
     let user = cookies.user
     const {trackid} = useParams();
 
-    const { data, loading, error } = useQuery(queries.GET_SPOTIFY_TRACK, {
-        variables: {
+    const { data: trackData, loading: trackLoading, error: trackError } = useQuery(
+        queries.GET_SPOTIFY_TRACK, {
+          variables: {
             id: user._id,
             trackId: trackid
-        }
-    });
-        
-    if (loading) return <p>Loading...</p>;
-    if (error) return <p>404 Error : Please try again</p>;
+          }
+      });
+      
+      const { data: audioFeaturesData, loading: audioFeaturesLoading, error: audioFeaturesError } = useQuery(
+        queries.GET_SPOTIFY_TRACK_AUDIO_FEATURES, {
+          variables: {
+            id: user._id,
+            trackId: trackid
+          }
+      });
+       
+    if (trackLoading || audioFeaturesLoading) return <p>Loading...</p>;
+    if (trackError || audioFeaturesError) return <p>404 Error : Please try again</p>;
 
-    const track = data?.getSpotifyTrack;
+    const track = trackData?.getSpotifyTrack;
+    const audioFeatures = audioFeaturesData?.getSpotifyTrackAudioFeatures;
 
-    console.log(track)
+    let chartData = {
+        options: {
+            chart: {
+                id: "basic-bar"
+            },
+            xaxis: {
+                categories: [
+                    "Acousticness",
+                    "Danceability",
+                    "Energy",
+                    "Instrumentalness",
+                    "Liveness",
+                    "Popularity?",
+                    "Speechful",
+                    "Valence"
+                ]
+            }
+        },
+        series: [
+            {
+                name: track.name,
+                data: [
+                    audioFeatures.acousticness,
+                    audioFeatures.danceability,
+                    audioFeatures.energy,
+                    audioFeatures.instrumentalness,
+                    audioFeatures.liveness,
+                    0,
+                    audioFeatures.speechiness,
+                    audioFeatures.valence,
+                ]
+            }
+        ]
+    };
 
     return (
         <div>
@@ -47,6 +91,13 @@ export function Track(props) {
             <h3>Album:</h3>
             <p>Name: <Link to={`/album/${track.album.id}`}>{track.album.name}</Link></p>
             </div>
+            <h1>Chart:</h1>
+            {chartData && <Chart
+                options={chartData.options}
+                series={chartData.series}
+                type="bar"
+                width="500"
+            />}
             <Link to={`/`}>Home</Link>
         </div>
     )
