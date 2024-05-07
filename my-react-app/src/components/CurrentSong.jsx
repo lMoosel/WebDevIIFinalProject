@@ -22,17 +22,12 @@ export function CurrentSong (props) {
     useEffect(() => {
         const interval = setInterval(() => {
             refetch();
-        }, 30000); // Refetch every 30 seconds
+        }, 30 * 1000); // Refetch every 30 seconds
         return () => clearInterval(interval);
     }, [user._id]); // Refetch when user ID changes (shouldn't be necessary but just in case)
 
-    if (!loading && error) {
-        console.log("Error: ", error);
-    }
-
-    if (!loading) {
-        console.log(data.getSpotifyCurrentlyPlaying);
-        console.log("User's id: ", user._id);
+    if (error) {
+        console.log("Error: ", error, loading);
     }
 
     return (

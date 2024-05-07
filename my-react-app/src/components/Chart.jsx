@@ -38,7 +38,9 @@ export function ChartComponent (props) {
 
     let chartData;
     if (query2Results.data) {
-        let songName = query1Results.data.getSpotifyCurrentlyPlaying.item.name;
+        let CPResults = query1Results.data.getSpotifyCurrentlyPlaying;
+        let songName = CPResults.item.name;
+        let artistName = CPResults.item.artists[0].name;
         let audioFeatures = query2Results.data.getSpotifyTrackAudioFeatures;
         chartData = {
             options: {
@@ -54,7 +56,18 @@ export function ChartComponent (props) {
                         "Liveness",
                         "Speechful",
                         "Valence"
-                    ]
+                    ],
+                    labels: {
+                        style: {
+                            colors : "#1DB954"
+                        }
+                    }
+                },
+                title: {
+                    text: songName + " by " + artistName,
+                    style: {
+                        color: "#1DB954"
+                    }
                 }
             },
             series: [
