@@ -149,6 +149,29 @@ export const resolvers = {
         throw new GraphQLError(error);
       }
     },
+    searchUsersByName: async (_, { query }) => {
+      try {
+        validateArgsString([query])
+      } catch (e) {
+        throw new GraphQLError(e, {
+          extensions: { code: 'BAD_USER_INPUT' },
+        });
+      }
+      const users = await usersCollection();
+      const regex = new RegExp(query, 'i');
+      let allUsers = await users.find({username: {$regex: regex}}).toArray();
+      if (!allUsers) {
+        // Could not get list
+        throw new GraphQLError(`Internal Server Error`, {
+          extensions: {code: 'INTERNAL_SERVER_ERROR'}
+        });
+      }
+      allUsers = allUsers.map((element) => {
+        element._id = element._id.toString();
+        return element;
+      });
+      return allUsers;
+    },
     getSpotifyAuthUrl: () => {
       const state = uuid();
       const scope =

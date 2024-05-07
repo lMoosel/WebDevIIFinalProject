@@ -256,6 +256,22 @@ const GET_SPOTIFY_PROFILE = gql`
     }
   }`;
 
+  const SEARCH_USERS_BY_NAME = gql`
+  query Query($query: String!) {
+    searchUsersByName(query: $query) {
+      _id
+      email
+      username
+      friendRequests
+      friends
+      profile_picture {
+        url
+        height
+        width
+      }
+    }
+  }`;
+
   const GET_USER_STATS = gql`
   query Query($id: String!) {
     getUserStats(_id: $id) {
@@ -321,6 +337,7 @@ const exported = {
     GET_SPOTIFY_TRACK_AUDIO_FEATURES,
     GET_USER,
     GET_USER_STATS,
+    SEARCH_USERS_BY_NAME,
     GET_SUGGESTED_FRIENDS,
     GET_FRIEND_REQUESTS,
     GET_ONLINE_FRIENDS
