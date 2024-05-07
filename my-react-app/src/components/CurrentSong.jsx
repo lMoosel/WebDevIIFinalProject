@@ -1,6 +1,7 @@
+import { useEffect, useState } from 'react';
 import { useQuery } from '@apollo/client';
 import queries from '../graphQL/index.js';
-import { CookiesProvider, useCookies } from 'react-cookie';
+import { useCookies } from 'react-cookie';
 
 export function CurrentSong (props) {
     
@@ -8,22 +9,30 @@ export function CurrentSong (props) {
     let user = cookies.user;
 
     if (!user) {
-        <h1>CURRENT SONG</h1>
+        return ( <h1>CURRENT SONG</h1> );
     }
 
-    const { data, loading, error } = useQuery(queries.GET_SPOTIFY_CURRENTLY_PLAYING, {
+    const { data, loading, error, refetch } = useQuery(queries.GET_SPOTIFY_CURRENTLY_PLAYING, {
         variables: {
             id: user._id
-        }
+        },
+        pollInterval: 30 * 1000
     });
 
-    if(!loading && false) {
-        console.log("Error: ", error)
+    useEffect(() => {
+        const interval = setInterval(() => {
+            refetch();
+        }, 30000); // Refetch every 30 seconds
+        return () => clearInterval(interval);
+    }, [user._id]); // Refetch when user ID changes (shouldn't be necessary but just in case)
+
+    if (!loading && error) {
+        console.log("Error: ", error);
     }
 
-    if(!loading) {
-        try {console.log(data.getSpotifyCurrentlyPlaying)} catch {}
-        console.log("user's id: ", user._id)
+    if (!loading) {
+        console.log(data.getSpotifyCurrentlyPlaying);
+        console.log("User's id: ", user._id);
     }
 
     return (
@@ -38,5 +47,5 @@ export function CurrentSong (props) {
                 <p>No song currently playing!</p>
             </>}
         </div>
-    )
+    );
 }

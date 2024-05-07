@@ -96,9 +96,11 @@ const GET_SPOTIFY_TRACK = gql`
     getSpotifyTrack (_id: $id, trackId: $trackId) {
       album {
         id
+        name
       }
       artists {
         id
+        name
       }
       available_markets
       disc_number
@@ -259,7 +261,38 @@ const GET_SPOTIFY_PROFILE = gql`
       valence
     }
   }`;
-
+const GET_SUGGESTED_FRIENDS = gql`
+  query Query($id: String!) {
+    getSuggestedFriends(_id: $id) {
+      _id
+      username
+      profile_picture {
+        url
+      }
+    }
+  }`;
+  const GET_FRIEND_REQUESTS = gql`
+  query Query($id: String!) {
+    getFriendRequests(_id: $id) {
+      _id
+      username
+      profile_picture {
+        url
+      }
+    }
+  }`;
+const GET_ONLINE_FRIENDS = gql`
+  query Query($id: String!) {
+    getOnlineFriends(_id: $id) {
+      _id
+      username
+      profile_picture {
+        url
+      }
+      track_name
+      trackid
+    }
+  }`;
 const exported = {
     GET_SPOTIFY_AUTH_URL,
     GET_SPOTIFY_CURRENTLY_PLAYING,
@@ -272,7 +305,9 @@ const exported = {
     GET_SPOTIFY_TOP_TRACKS,
     GET_SPOTIFY_TRACK_AUDIO_FEATURES,
     GET_USER,
-    GET_USER_STATS
-    
+    GET_USER_STATS,
+    GET_SUGGESTED_FRIENDS,
+    GET_FRIEND_REQUESTS,
+    GET_ONLINE_FRIENDS
 }
 export default exported;

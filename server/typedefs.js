@@ -2,15 +2,21 @@ export const typeDefs = `#graphql
 type Query {
     getSpotifyAuthUrl: String
     getUser(_id: String!): User
+    getSuggestedFriends(_id: String!): [Friend]
+    getFriendRequests(_id: String!): [Friend]
+    getOnlineFriends(_id: String!): [OnlineFriend]
     getUserStats(_id: String!): StatResponse
     getSpotifyTopTracks(_id: String!, time_range: String!, offset: Int!, limit: Int!): TracksResponse
     getSpotifyTopArtists(_id: String!, time_range: String!, offset: Int!, limit: Int!): ArtistsResponse
+    getSpotifyTopAlbums(_id: String!, time_range: String!, limit: Int): [Album!]
+    getSpotifyTopGenres(_id: String!, time_range: String!, limit: Int): [String!]
     getSpotifyProfile(_id: String!): SpotifyProfile
     getSpotifyArtist(_id: String!, artistId: String!): Artist
     getSpotifyTrack(_id: String!, trackId: String!): Track
     getSpotifyAlbum(_id: String!, albumId: String!): Album
     getSpotifySearch(_id: String!, query: String!, type: [String!], limit: Int!, offset: Int!): SearchResponse
     getSpotifyCurrentlyPlaying(_id: String!): CurrentlyPlayingResponse
+    getSpotifyRecentTracks(_id: String!, limit: Int!): RecentTracksResponse
     getSpotifyTrackAudioFeatures(_id: String!, trackId: String!): AudioFeatureResponse
 }
 
@@ -33,16 +39,24 @@ type User {
     friendRequests: [String]
     friends: [String]
 }
-type SearchResponse {
-    tracks: TracksResponse
-    artists: ArtistsResponse
-    albums: AlbumsResponse
+type Friend {
+    _id: String!
+    username: String!
+    profile_picture: [Image]
+}
+type OnlineFriend {
+    _id: String!
+    username: String!
+    profile_picture: [Image]
+    track_name: String
+    trackid: String
 }
 type AutProfile {
     display_name: String
     email: String
     images: [Image]
 }
+
 type SpotifyProfile {
     country: String
     display_name: String
@@ -57,13 +71,31 @@ type SpotifyProfile {
     type: String
     uri: String
 }
+
 type Followers {
     href: String
     total: Int
 }
+
 type ExplicitContent {
     filter_enabled: Boolean
     filter_locked: Boolean
+}
+
+type SearchResponse {
+    tracks: TracksResponse
+    artists: ArtistsResponse
+    albums: AlbumsResponse
+}
+
+type RecentTracksResponse {
+    href: String!
+    limit: Int!
+    next: String
+    offset: Int!
+    previous: String
+    total: Int!
+    items: [PlayHistory!]
 }
 type TracksResponse {
     href: String!
@@ -74,6 +106,7 @@ type TracksResponse {
     total: Int!
     items: [Track!]
 }
+
 type AlbumsResponse {
     href: String!
     limit: Int!
@@ -94,6 +127,10 @@ type ArtistsResponse {
     items: [Artist!]  
 }
 
+type PlayHistory {
+  track: Track!
+  played_at: String!
+}
 
 type ExternalUrls {
     spotify: String

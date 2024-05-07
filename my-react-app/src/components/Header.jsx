@@ -1,12 +1,10 @@
 import { CookiesProvider, useCookies } from 'react-cookie';
-export function Header(props) {
+import { useNavigate } from 'react-router-dom';
+export function Header({ logout }) {
     
-    const [cookies, setCookie] = useCookies(['user']);
-
+    const [cookies, setCookie, removeCookie] = useCookies(['user']);
     let user = cookies.user;
-    
     console.log("user: ", user)
-
     return (
         <div id="header">
 
@@ -24,7 +22,7 @@ export function Header(props) {
                         <a id="username-header">{user.username}</a>
                     }
                     <span id="Login-Logout-button">
-                        <button>Logout</button>
+                        <button onClick={logout}>Logout</button>
                     </span>
                 </div>
             }

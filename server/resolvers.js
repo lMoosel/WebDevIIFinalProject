@@ -5,6 +5,7 @@ import { ObjectId } from "mongodb";
 import axios from "axios";
 import { users as usersCollection } from "./config/mongoCollections.js";
 import bcrypt from "bcrypt";
+import { Graph } from "redis";
 
 import {
   client,
@@ -38,15 +39,117 @@ import {
   handleResponse,
   getAxiosCall,
   get,
+  getRecentTracks,
+  getFavoriteGenres,
+  getFavoriteAlbums,
 } from "./data/spotify.js";
-import { Graph } from "redis";
 
 export const resolvers = {
   Query: {
+    getOnlineFriends: async (_, { _id }) => {
+      try {
+        const users = await usersCollection();
+        const user = await users.findOne({ _id: new ObjectId(_id) });
+        if (!user) {
+          throw new GraphQLError("Could not find user");
+        }
+        const friends = user.friends;
+        const onlineFriends = [];
+        for (const friendId of friends) {
+          try {
+            const playingStatus = await get(
+              friendId,
+              `getSpotifyCurrentlyPlaying:${friendId}`,
+              30,
+              "https://api.spotify.com/v1/me/player/currently-playing",
+            );
+            if (playingStatus && playingStatus.is_playing) {
+              const friendDetails = await users.findOne({ _id: new ObjectId(friendId) });
+              onlineFriends.push({
+                _id: friendDetails._id.toString(),
+                username: friendDetails.username,
+                profile_picture: friendDetails.profile_picture,
+                track_name: playingStatus.item.name,
+                trackid: playingStatus.item.id
+              });
+            }
+          } catch (error2) {
+            console.error(`Error fetching Spotify currently playing for friend ${friendId}:`, error2);
+          }
+        }
+        return onlineFriends;
+      } catch (error) {
+        throw new GraphQLError(error);
+      }
+    },
+    getSuggestedFriends: async (_, { _id }) => {
+      try {
+        const cache = await checkCache(`suggestedFriends:${_id}`);
+        if (cache) {
+          return cache;
+        }
+        isValidId(_id);
+        const users = await usersCollection();
+        const user = await users.findOne({ _id: new ObjectId(_id) });
+        if (!user) {
+          throw new GraphQLError("Could not find user");
+        }
+        const friends = user.friends.map(id => new ObjectId(id));
+        const suggested = await users.find({
+          _id: { $nin: friends, $ne: new ObjectId(_id) },
+          friendRequests: { $nin: [_id] }
+        }).toArray();
+  
+        const result = suggested.map(user => ({
+          _id: user._id.toString(),
+          username: user.username,
+          profile_picture: user.profile_picture,
+        }));
+    
+        await addToCache(`suggestedFriends:${_id}`, result, 60 * 60);
+    
+        return result;
+      } catch (error) {
+        throw new GraphQLError(error);
+      }
+    },
+    getFriendRequests: async (_, { _id }) => {
+      try {
+        const cache = await checkCache(`friendRequests:${_id}`);
+        if (cache) {
+          return cache;
+        }
+        isValidId(_id);
+        const users = await usersCollection();
+        const user = await users.findOne({ _id: new ObjectId(_id) });
+        if (!user) {
+          throw new GraphQLError("Could not find user");
+        }
+
+        const objectIds = user.friendRequests.map(id => new ObjectId(id));
+
+        const requests = await users.find({
+          _id: { $in: objectIds }
+        }).toArray();
+  
+        const result = requests.map(user => ({
+          _id: user._id.toString(),
+          username: user.username,
+          profile_picture: user.profile_picture,
+        }));
+    
+        await addToCache(`friendRequests:${_id}`, result, 60 * 60);
+    
+        console.log("Does this run?")
+        return result;
+      } catch (error) {
+        throw new GraphQLError(error);
+      }
+    },
     getSpotifyAuthUrl: () => {
       const state = uuid();
       const scope =
-        "user-read-private user-read-email user-top-read user-read-currently-playing"; //This is important, change this if u want to use calls that need diff perms
+        "user-read-private user-read-email user-top-read user-read-currently-playing user-read-recently-played"; //This is important, change this if u want to use calls that need diff perms
       const clientId = process.env.SPOTIFY_CLIENT_ID;
       const redirectUri = process.env.REDIRECT_URI;
       const params = new URLSearchParams({
@@ -61,7 +164,7 @@ export const resolvers = {
     getUser: async (_, { _id }) => {
       try {
         const cache = await checkCache(`user:${_id}`);
-        if(cache){
+        if (cache) {
           return cache;
         }
         isValidId(_id);
@@ -77,8 +180,8 @@ export const resolvers = {
           email: user.email,
           friendRequests: user.friendRequests,
           friends: user.friends,
-        }
-        await addToCache(`user:${_id}`,ret,60*60)
+        };
+        await addToCache(`user:${_id}`, ret, 60 * 60);
         return ret;
       } catch (error) {
         throw new GraphQLError(error);
@@ -137,6 +240,20 @@ export const resolvers = {
           params,
         );
         return response;
+      } catch (error) {
+        throw new GraphQLError(error);
+      }
+    },
+    getSpotifyTopAlbums: async (_, { _id, time_range, limit }) => {
+      try {
+        return await getFavoriteAlbums(_id, time_range, limit);
+      } catch (error) {
+        throw new GraphQLError(error);
+      }
+    },
+    getSpotifyTopGenres: async (_, { _id, time_range, limit }) => {
+      try {
+        return await getFavoriteGenres(_id, time_range, limit);
       } catch (error) {
         throw new GraphQLError(error);
       }
@@ -216,6 +333,15 @@ export const resolvers = {
       } catch (error) {
         throw new GraphQLError(error);
       }
+    },
+    getSpotifyRecentTracks: async (_, { _id, limit }) => {
+      isValidId(_id);
+
+      if (limit < 0 || limit > 100) {
+        throw new GraphQLError("limit needs to be between 0 and 100");
+      }
+
+      return await getRecentTracks(_id, limit);
     },
     getSpotifyTrackAudioFeatures: async (_, { _id, trackId }) => {
       try {
@@ -350,8 +476,8 @@ export const resolvers = {
           email: user.email,
           friendRequests: user.friendRequests,
           friends: user.friends,
-        }
-        await addToCache(`user:${user._id.toString()}`,ret,60*60)
+        };
+        await addToCache(`user:${user._id.toString()}`, ret, 60 * 60);
         return ret;
       } catch (error) {
         throw new GraphQLError(error);
@@ -386,9 +512,11 @@ export const resolvers = {
           45 * 60,
         );
         const users = await usersCollection();
-        let insertedUser= await users.insertOne(newUser);
+        let insertedUser = await users.insertOne(newUser);
         if (!insertedUser.acknowledged) {
-          throw new GraphQLError(`Could not add user`, { extensions: { code: 'BAD_USER_INPUT' } });
+          throw new GraphQLError(`Could not add user`, {
+            extensions: { code: "BAD_USER_INPUT" },
+          });
         }
         const ret = {
           _id: newUser._id.toString(),
@@ -397,8 +525,8 @@ export const resolvers = {
           email: newUser.email,
           friendRequests: newUser.friendRequests,
           friends: newUser.friends,
-        }
-        await addToCache(`user:${newUser._id.toString()}`,ret,60*60)
+        };
+        await addToCache(`user:${newUser._id.toString()}`, ret, 60 * 60);
         return ret;
       } catch (error) {
         throw new GraphQLError(error);
@@ -453,8 +581,8 @@ export const resolvers = {
           email: user.email,
           friendRequests: user.friendRequests,
           friends: user.friends,
-        }
-        await addToCache(`user:${_id}`,ret,60*60)
+        };
+        await addToCache(`user:${_id}`, ret, 60 * 60);
         return ret;
       } catch (error) {
         throw new GraphQLError(error);
@@ -504,7 +632,7 @@ export const resolvers = {
           email: user.email,
           friendRequests: user.friendRequests,
           friends: user.friends,
-        }
+        };
         return ret;
       } catch (error) {
         throw new GraphQLError(error);
@@ -546,6 +674,7 @@ export const resolvers = {
         throw new GraphQLError("Something went wrong when updating friend");
 
       await removeFromCache(`user:${friendId}`);
+      await removeFromCache(`suggestedFriends:${userId}`)
 
       return "Friend Request Sent";
     },
@@ -599,6 +728,7 @@ export const resolvers = {
             throw new GraphQLError("Something went wrong when updating user");
 
           await removeFromCache(`user:${userId}`);
+          await removeFromCache(`friendRequests:${userId}`);
           await removeFromCache(`user:${friendId}`);
 
           return "Friend request accepted";
