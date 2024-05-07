@@ -224,7 +224,7 @@ export const getFavoriteGenres = async (_id, time_range, limit = 10) => {
 
   // Can only get genre from artist
   const genres = data.items.map((artist) => artist.genres).flat();
-
+  
   const counts = {};
   // Counts frequenct of genre
   for (const genre of genres) {
@@ -233,7 +233,7 @@ export const getFavoriteGenres = async (_id, time_range, limit = 10) => {
 
   // Sort descending
   let top = Object.keys(counts).sort((a, b) => counts[b] - counts[a]);
-  top = top.filter((genre) => counts[genre] > 1);
+  top = top.filter((genre) => counts[genre] >= 1);
 
   return top.slice(0, limit);
 };
