@@ -89,17 +89,13 @@ const SEND_FRIEND_REQUEST = gql`
 
 const HANDLE_FRIEND_REQUEST = gql`
     mutation HandleFriendRequest ($userId: String!, $friendId: String!, $action: String!) {
-        handleFriendRequest(userId: $userId, friendId: $friendId, action: $action) {
-            s
-        }
+        handleFriendRequest(userId: $userId, friendId: $friendId, action: $action)
     }
 `;
 
 const REMOVE_FRIEND = gql`
     mutation RemoveFriend ($userId: String!, $friendId: String!) {
-        removeFriend(userId: $userId, friendId: $friendId) {
-            s
-        }
+        removeFriend(userId: $userId, friendId: $friendId)
     }
 `;
 

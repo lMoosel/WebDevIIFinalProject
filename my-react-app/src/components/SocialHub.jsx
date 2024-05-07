@@ -7,18 +7,21 @@ export function SocialHub(props) {
     const [cookies, setCookie] = useCookies(['user']);
     const userid = cookies.user._id;
 
-    const { data: userData, loading: userLoading, error: userError } = useQuery(queries.GET_USER, {
+    const { data: friendRequestsData, loading: friendRequestsLoading, error: friendRequestsError, refetch: refreshFriendRequestsData } = useQuery(queries.GET_FRIEND_REQUESTS, {
         variables: { id: userid }
     });
 
-    const { data: onlineFriendsData, loading: onlineFriendsLoading, error: onlineFriendsError } = useQuery(queries.GET_ONLINE_FRIENDS, {
+    const { data: onlineFriendsData, loading: onlineFriendsLoading, error: onlineFriendsError, refetch: refreshOnlineFriendsError } = useQuery(queries.GET_ONLINE_FRIENDS, {
         variables: { id: userid },
         pollInterval: 30000
     });
 
-    const { data: suggestedFriendsData, loading: suggestedFriendsLoading, error: suggestedFriendsError } = useQuery(queries.GET_SUGGESTED_FRIENDS, {
+    const { data: suggestedFriendsData, loading: suggestedFriendsLoading, error: suggestedFriendsError, refetch: refreshSuggestedFriends } = useQuery(queries.GET_SUGGESTED_FRIENDS, {
         variables: { id: userid }
     });
+
+    console.log("Testing")
+    console.log(friendRequestsData)
 
     const [sendFriendRequestMutation] = useMutation(mutations.SEND_FRIEND_REQUEST);
     
@@ -31,17 +34,37 @@ export function SocialHub(props) {
                 }
             });
             console.log('Friend request sent successfully');
-            // Optionally, you can update your UI to reflect the sent friend request
+            alert("Friend request has been sent!")
+            refreshSuggestedFriends();
         } catch (error) {
             console.error('Error sending friend request:', error);
-            // Handle error accordingly
         }
     };
 
-    if (userLoading || onlineFriendsLoading || suggestedFriendsLoading) {
+    const [handleFriendRequestMutation] = useMutation(mutations.HANDLE_FRIEND_REQUEST);
+    
+    const handleFriendRequest = async (friendid, action) => {
+        console.log(friendid)
+        try {
+            await handleFriendRequestMutation({
+                variables: {
+                    userId: userid,
+                    friendId: friendid,
+                    action: action
+                }
+            });
+            refreshSuggestedFriends();
+            refreshFriendRequestsData();
+            refreshOnlineFriendsError();
+        } catch (error) {
+            console.error('Error handling friend request:', error);
+        }
+    };
+
+    if (friendRequestsLoading || onlineFriendsLoading || suggestedFriendsLoading) {
         return <p>Loading...</p>;
     }
-    if (userError || onlineFriendsError || suggestedFriendsError) {
+    if (friendRequestsError || onlineFriendsError || suggestedFriendsError) {
         return <p>Error: Please try again</p>;
     }
 
@@ -59,8 +82,13 @@ export function SocialHub(props) {
 
             <h3>Incoming Friend requests:</h3>
             {
-                userData?.getUser.friendRequests.map((friend, index) => (
-                    <FriendRequest key={index} name={friend}/>
+                friendRequestsData?.getFriendRequests.map((friend, index) => (
+                    <FriendRequest 
+                        key={index}
+                        name={friend.username}
+                        _id={friend._id}
+                        handleFriendRequest={handleFriendRequest}
+                    />
                 ))
             }
 
@@ -71,7 +99,8 @@ export function SocialHub(props) {
                         key={index}
                         name={friend.username}
                         _id={friend._id}
-                        sendFriendRequest={sendFriendRequest}/>
+                        sendFriendRequest={sendFriendRequest}
+                    />
                 ))
             }
         </div>
@@ -82,8 +111,8 @@ function FriendRequest(props) {
     return (
     <div className="friend-request">
         <span className="request-span"><a>{props.name}</a></span>
-        <span className="request-span"><button id="accept-request">Accept</button></span>
-        <span className="request-span"><button id="decline-request">Decline</button></span>
+        <span className="request-span"><button id="accept-request" onClick={() => props.handleFriendRequest(props._id, "accept")}>Accept</button></span>
+        <span className="request-span"><button id="decline-request" onClick={() => props.handleFriendRequest(props._id, "reject")}>Reject</button></span>
     </div>
     )
 }
@@ -101,7 +130,7 @@ function SuggestedFriend(props) {
     return (
         <div className="suggested-friend friend-request"> 
             <span><a>{props.name}</a></span>
-            <span><button onClick={() => props.sendFriendRequest(props._id)}>Send Request</button></span>
+            <span className="request-span"><button onClick={() => props.sendFriendRequest(props._id)}>Send Request</button></span>
         </div>
 
     )

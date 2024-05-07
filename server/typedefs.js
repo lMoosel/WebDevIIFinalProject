@@ -3,6 +3,7 @@ type Query {
     getSpotifyAuthUrl: String
     getUser(_id: String!): User
     getSuggestedFriends(_id: String!): [Friend]
+    getFriendRequests(_id: String!): [Friend]
     getOnlineFriends(_id: String!): [OnlineFriend]
     getUserStats(_id: String!): StatResponse
     getSpotifyTopTracks(_id: String!, time_range: String!, offset: Int!, limit: Int!): TracksResponse

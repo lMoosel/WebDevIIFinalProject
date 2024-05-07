@@ -271,6 +271,16 @@ const GET_SUGGESTED_FRIENDS = gql`
       }
     }
   }`;
+  const GET_FRIEND_REQUESTS = gql`
+  query Query($id: String!) {
+    getFriendRequests(_id: $id) {
+      _id
+      username
+      profile_picture {
+        url
+      }
+    }
+  }`;
 const GET_ONLINE_FRIENDS = gql`
   query Query($id: String!) {
     getOnlineFriends(_id: $id) {
@@ -297,6 +307,7 @@ const exported = {
     GET_USER,
     GET_USER_STATS,
     GET_SUGGESTED_FRIENDS,
+    GET_FRIEND_REQUESTS,
     GET_ONLINE_FRIENDS
 }
 export default exported;

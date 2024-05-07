@@ -113,6 +113,39 @@ export const resolvers = {
         throw new GraphQLError(error);
       }
     },
+    getFriendRequests: async (_, { _id }) => {
+      try {
+        const cache = await checkCache(`friendRequests:${_id}`);
+        if (cache) {
+          return cache;
+        }
+        isValidId(_id);
+        const users = await usersCollection();
+        const user = await users.findOne({ _id: new ObjectId(_id) });
+        if (!user) {
+          throw new GraphQLError("Could not find user");
+        }
+
+        const objectIds = user.friendRequests.map(id => new ObjectId(id));
+
+        const requests = await users.find({
+          _id: { $in: objectIds }
+        }).toArray();
+  
+        const result = requests.map(user => ({
+          _id: user._id.toString(),
+          username: user.username,
+          profile_picture: user.profile_picture,
+        }));
+    
+        await addToCache(`friendRequests:${_id}`, result, 60 * 60);
+    
+        console.log("Does this run?")
+        return result;
+      } catch (error) {
+        throw new GraphQLError(error);
+      }
+    },
     getSpotifyAuthUrl: () => {
       const state = uuid();
       const scope =
@@ -695,6 +728,7 @@ export const resolvers = {
             throw new GraphQLError("Something went wrong when updating user");
 
           await removeFromCache(`user:${userId}`);
+          await removeFromCache(`friendRequests:${userId}`);
           await removeFromCache(`user:${friendId}`);
 
           return "Friend request accepted";
