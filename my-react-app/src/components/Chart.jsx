@@ -78,7 +78,7 @@ export function ChartComponent (props) {
 
     return (
         <div id="Chart-div">
-            {!props.hideInfo && <button className="info-button" onClick={() => {location.href="/chart"}}>i</button>}
+            {!props.hideInfo && <button className="info-button" onClick={() => {location.href=`/track/${query1Results.data.getSpotifyCurrentlyPlaying.item.id}`}}>i</button>}
             <h1>CHART</h1>
 
             { chartData && <Chart

@@ -41,7 +41,6 @@ function App() {
               <Route path="/" element={<StatsScreen/>} />
               <Route path="/socialhub" element={<SocialHub hideInfo={true}/>}/>
               <Route path="/topcategories" element={<GenreInfo hideInfo={true}/>}/>
-              <Route path="/chart" element={<ChartComponent hideInfo={true}/>}/>
               <Route path="/artist/:artistid" element={<Artist/>}/>
               <Route path="/album/:albumid" element={<Album/>}/>
               <Route path="/track/:trackid" element={<Track/>}/>
