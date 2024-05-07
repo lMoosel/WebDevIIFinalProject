@@ -7,7 +7,7 @@ type Query {
     getUserStats(_id: String!): StatResponse
     getSpotifyTopTracks(_id: String!, time_range: String!, offset: Int!, limit: Int!): TracksResponse
     getSpotifyTopArtists(_id: String!, time_range: String!, offset: Int!, limit: Int!): ArtistsResponse
-    getSpotifyTopAlbums(_id: String!, time_range: String!, limit: Int): [String!]
+    getSpotifyTopAlbums(_id: String!, time_range: String!, limit: Int): [Album!]
     getSpotifyTopGenres(_id: String!, time_range: String!, limit: Int): [String!]
     getSpotifyProfile(_id: String!): SpotifyProfile
     getSpotifyArtist(_id: String!, artistId: String!): Artist
