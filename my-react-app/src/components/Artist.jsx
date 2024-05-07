@@ -10,7 +10,7 @@ export function Artist(props) {
     let user = cookies.user
     const {artistid} = useParams();
 
-    const { data, loading, error } = useQuery(queries.GET_SPOTIFY_ARTIST , {
+    const { data, loading, error } = useQuery(queries.GET_SPOTIFY_ARTIST, {
         variables: {
             id: user._id,
             artistId: artistid
@@ -39,6 +39,7 @@ export function Artist(props) {
                     />
                 )}
             </div>
+            <Link to={`/`}>Home</Link>
         </div>
     )
 }
