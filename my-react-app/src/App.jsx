@@ -10,9 +10,12 @@ import { CookiesProvider, useCookies } from 'react-cookie';
 import './App.css'
 import { SocialHub } from './components/SocialHub.jsx'
 import { GenreInfo } from './components/GenreInfo.jsx'
-import { Chart } from './components/Chart.jsx'
+import { ChartComponent } from './components/Chart.jsx'
 import { CurrentSong } from './components/CurrentSong.jsx'
 import { Header } from './components/Header.jsx'
+import { Artist } from './components/Artist.jsx'
+import { Album } from './components/Album.jsx'
+import { Track } from './components/Track.jsx'
 import Login from './components/Login.jsx'
 import Authorize from './components/Authorize.jsx'
 import Callback from './components/Callback.jsx'
@@ -35,10 +38,12 @@ function App() {
           <>
             <Header logout={handleLogout} /> <br/> <br/> <br/>
             <Routes>
-              <Route path="/" element={<StatsScreen />} />
+              <Route path="/" element={<StatsScreen/>} />
               <Route path="/socialhub" element={<SocialHub hideInfo={true}/>}/>
-               <Route path="/topcategories" element={<GenreInfo hideInfo={true}/>}/>
-               <Route path="/chart" element={<Chart hideInfo={true}/>}/>
+              <Route path="/topcategories" element={<GenreInfo hideInfo={true}/>}/>
+              <Route path="/artist/:artistid" element={<Artist/>}/>
+              <Route path="/album/:albumid" element={<Album/>}/>
+              <Route path="/track/:trackid" element={<Track/>}/>
               <Route path="*" element={<Navigate replace to="/" />} />
             </Routes>
             <CurrentSong />

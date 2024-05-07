@@ -83,9 +83,7 @@ const EDIT_USER = gql`
 
 const SEND_FRIEND_REQUEST = gql`
     mutation SendFriendRequest ($userId: String!, $friendId: String!) {
-        sendFriendRequest(userId: $userId, friendId: $friendId) {
-            s
-        }
+        sendFriendRequest(userId: $userId, friendId: $friendId)
     }
 `;
 

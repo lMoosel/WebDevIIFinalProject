@@ -1,4 +1,4 @@
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { useQuery } from '@apollo/client';
 import queries from '../graphQL/index.js';  
 import { CookiesProvider, useCookies } from 'react-cookie';
@@ -11,7 +11,7 @@ export function GenreInfo(props) {
     let data_tracks; let data_artists;
     let loading_tracks; let loading_artists;
 
-    if(true) { //Im sure there is a better way to do this but it works
+    if (true) { // Im sure there is a better way to do this but it works
         const { data, loading, error } = useQuery(queries.GET_SPOTIFY_TOP_TRACKS, 
             {
                 variables: {
@@ -30,7 +30,7 @@ export function GenreInfo(props) {
         }
     }
 
-    if(true) {
+    if (true) {
         const {data, loading, error} = useQuery(queries.GET_SPOTIFY_TOP_ARTISTS, 
             {
             variables: {
@@ -48,9 +48,6 @@ export function GenreInfo(props) {
         }
     }
 
-    
-
-
     return(
         <div id="Genre-info-div">
             {!props.hideInfo && <button className="info-button" onClick={() => {location.href="/topcategories"}}>i</button>}
@@ -60,8 +57,8 @@ export function GenreInfo(props) {
             {!loading_tracks && data_tracks &&
                 data_tracks.items.map((song) => {
                     return (
-                        <div key={song.name}>
-                            {song.name}
+                        <div key={song.id}>
+                            <Link to={`/track/${song.id}`}>{song.name}</Link>
                         </div>
                     )
                 })
@@ -71,8 +68,8 @@ export function GenreInfo(props) {
             {!loading_tracks && data_artists &&
                 data_artists.items.map((artist) => {
                     return (
-                        <div key={artist.name}>
-                            {artist.name}
+                        <div key={artist.id}>
+                            <Link to={`/artist/${artist.id}`}>{artist.name}</Link>
                         </div>
                     )
                 })   

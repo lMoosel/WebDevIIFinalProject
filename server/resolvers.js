@@ -40,10 +40,79 @@ import {
   getAxiosCall,
   get,
   getRecentTracks,
+  getFavoriteGenres,
+  getFavoriteAlbums,
 } from "./data/spotify.js";
 
 export const resolvers = {
   Query: {
+    getOnlineFriends: async (_, { _id }) => {
+      try {
+        const users = await usersCollection();
+        const user = await users.findOne({ _id: new ObjectId(_id) });
+        if (!user) {
+          throw new GraphQLError("Could not find user");
+        }
+        const friends = user.friends;
+        const onlineFriends = [];
+        for (const friendId of friends) {
+          try {
+            const playingStatus = await get(
+              friendId,
+              `getSpotifyCurrentlyPlaying:${friendId}`,
+              30,
+              "https://api.spotify.com/v1/me/player/currently-playing",
+            );
+            if (playingStatus && playingStatus.is_playing) {
+              const friendDetails = await users.findOne({ _id: new ObjectId(friendId) });
+              onlineFriends.push({
+                _id: friendDetails._id.toString(),
+                username: friendDetails.username,
+                profile_picture: friendDetails.profile_picture,
+                track_name: playingStatus.item.name,
+                trackid: playingStatus.item.id
+              });
+            }
+          } catch (error2) {
+            console.error(`Error fetching Spotify currently playing for friend ${friendId}:`, error2);
+          }
+        }
+        return onlineFriends;
+      } catch (error) {
+        throw new GraphQLError(error);
+      }
+    },
+    getSuggestedFriends: async (_, { _id }) => {
+      try {
+        const cache = await checkCache(`suggestedFriends:${_id}`);
+        if (cache) {
+          return cache;
+        }
+        isValidId(_id);
+        const users = await usersCollection();
+        const user = await users.findOne({ _id: new ObjectId(_id) });
+        if (!user) {
+          throw new GraphQLError("Could not find user");
+        }
+        const friends = user.friends.map(id => new ObjectId(id));
+        const suggested = await users.find({
+          _id: { $nin: friends},
+          _id: { $ne: new ObjectId(_id) } 
+        }).toArray();
+  
+        const result = suggested.map(user => ({
+          _id: user._id.toString(),
+          username: user.username,
+          profile_picture: user.profile_picture,
+        }));
+    
+        await addToCache(`suggestedFriends:${_id}`, result, 60 * 60);
+    
+        return result;
+      } catch (error) {
+        throw new GraphQLError(error);
+      }
+    },
     getSpotifyAuthUrl: () => {
       const state = uuid();
       const scope =
@@ -138,6 +207,20 @@ export const resolvers = {
           params,
         );
         return response;
+      } catch (error) {
+        throw new GraphQLError(error);
+      }
+    },
+    getSpotifyTopAlbums: async (_, { _id, time_range, limit }) => {
+      try {
+        return await getFavoriteAlbums(_id, time_range, limit);
+      } catch (error) {
+        throw new GraphQLError(error);
+      }
+    },
+    getSpotifyTopGenres: async (_, { _id, time_range, limit }) => {
+      try {
+        return await getFavoriteGenres(_id, time_range, limit);
       } catch (error) {
         throw new GraphQLError(error);
       }

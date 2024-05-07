@@ -1,8 +1,49 @@
-export function SocialHub(props) {
+import { CookiesProvider, useCookies } from 'react-cookie';
+import { useQuery, useMutation } from '@apollo/client';
+import queries from '../graphQL/index.js';
+import mutations from '../graphQL/index.js';
 
-    let onlineFriends = [{name:"Charles", currentSong:"N/A"}, {name:"Luke", currentSong:"Song"}, {name:"Alex", currentSong:"Other Song"}]
-    let friendRequests = [{name:"Olivia"}]
-    let suggestedFriends = [{name:"Zack"}]
+export function SocialHub(props) {
+    const [cookies, setCookie] = useCookies(['user']);
+    const userid = cookies.user._id;
+
+    const { data: userData, loading: userLoading, error: userError } = useQuery(queries.GET_USER, {
+        variables: { id: userid }
+    });
+
+    const { data: onlineFriendsData, loading: onlineFriendsLoading, error: onlineFriendsError } = useQuery(queries.GET_ONLINE_FRIENDS, {
+        variables: { id: userid },
+        pollInterval: 30000
+    });
+
+    const { data: suggestedFriendsData, loading: suggestedFriendsLoading, error: suggestedFriendsError } = useQuery(queries.GET_SUGGESTED_FRIENDS, {
+        variables: { id: userid }
+    });
+
+    const [sendFriendRequestMutation] = useMutation(mutations.SEND_FRIEND_REQUEST);
+    
+    const sendFriendRequest = async (friendid) => {
+        try {
+            await sendFriendRequestMutation({
+                variables: {
+                    userId: userid,
+                    friendId: friendid
+                }
+            });
+            console.log('Friend request sent successfully');
+            // Optionally, you can update your UI to reflect the sent friend request
+        } catch (error) {
+            console.error('Error sending friend request:', error);
+            // Handle error accordingly
+        }
+    };
+
+    if (userLoading || onlineFriendsLoading || suggestedFriendsLoading) {
+        return <p>Loading...</p>;
+    }
+    if (userError || onlineFriendsError || suggestedFriendsError) {
+        return <p>Error: Please try again</p>;
+    }
 
     return (
         <div id="Social-hub-div">
@@ -11,25 +52,27 @@ export function SocialHub(props) {
 
             <h3>Online Friends:</h3>
             {
-                onlineFriends.map((friend, index) => {
-                    return( <OnlineFriend key={index} name={friend.name} currentSong={friend.currentSong} /> )
-                })
+                onlineFriendsData?.getOnlineFriends.map((friend, index) => (
+                    <OnlineFriend key={index} name={friend.username} currentSong={friend.track_name} />
+                ))
             }
 
             <h3>Incoming Friend requests:</h3>
             {
-                friendRequests.map((friend, index) => {
-                    return (<FriendRequest key={index} name={friend.name}/>)
-                })
+                userData?.getUser.friendRequests.map((friend, index) => (
+                    <FriendRequest key={index} name={friend}/>
+                ))
             }
 
             <h3>Suggested Friends:</h3>
             {
-                suggestedFriends.map((friend, index) => {
-                    return(
-                    <SuggestedFriend key={index} name={friend.name}/>
-                    )
-                })
+                suggestedFriendsData?.getSuggestedFriends.map((friend, index) => (
+                    <SuggestedFriend 
+                        key={index}
+                        name={friend.username}
+                        _id={friend._id}
+                        sendFriendRequest={sendFriendRequest}/>
+                ))
             }
         </div>
     )
@@ -58,7 +101,7 @@ function SuggestedFriend(props) {
     return (
         <div className="suggested-friend friend-request"> 
             <span><a>{props.name}</a></span>
-            <span><button>Send Request</button></span>
+            <span><button onClick={() => props.sendFriendRequest(props._id)}>Send Request</button></span>
         </div>
 
     )
