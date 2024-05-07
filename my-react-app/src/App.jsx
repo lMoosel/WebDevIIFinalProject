@@ -10,7 +10,7 @@ import { CookiesProvider, useCookies } from 'react-cookie';
 import './App.css'
 import { SocialHub } from './components/SocialHub.jsx'
 import { GenreInfo } from './components/GenreInfo.jsx'
-import { Chart } from './components/Chart.jsx'
+import { ChartComponent } from './components/Chart.jsx'
 import { CurrentSong } from './components/CurrentSong.jsx'
 import { Header } from './components/Header.jsx'
 import Login from './components/Login.jsx'
@@ -38,7 +38,7 @@ function App() {
               <Route path="/" element={<StatsScreen />} />
               <Route path="/socialhub" element={<SocialHub hideInfo={true}/>}/>
                <Route path="/topcategories" element={<GenreInfo hideInfo={true}/>}/>
-               <Route path="/chart" element={<Chart hideInfo={true}/>}/>
+               <Route path="/chart" element={<ChartComponent hideInfo={true}/>}/>
               <Route path="*" element={<Navigate replace to="/" />} />
             </Routes>
             <CurrentSong />

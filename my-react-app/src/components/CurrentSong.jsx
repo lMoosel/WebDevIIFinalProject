@@ -8,14 +8,14 @@ export function CurrentSong (props) {
     let user = cookies.user;
 
     if (!user) {
-        <h1>CURRENT SONG</h1>
+        return ( <h1>CURRENT SONG</h1> );
     }
 
     const { data, loading, error } = useQuery(queries.GET_SPOTIFY_CURRENTLY_PLAYING, {
         variables: {
             id: user._id
         },
-        pollInterval: 30000
+        pollInterval: 30 * 1000
     });
 
     if(!loading && false) {
