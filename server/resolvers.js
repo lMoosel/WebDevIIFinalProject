@@ -802,7 +802,9 @@ export const resolvers = {
           throw new GraphQLError("Something went wrong when removing friend");
 
         await removeFromCache(`user:${userId}`);
+        await removeFromCache(`suggestedFriends:${userId}`)
         await removeFromCache(`user:${friendId}`);
+        await removeFromCache(`suggestedFriends:${friendId}`)
 
         return "Removed friend";
       } catch (error) {

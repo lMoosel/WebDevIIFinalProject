@@ -11,7 +11,7 @@ export function SocialHub(props) {
         variables: { id: userid }
     });
 
-    const { data: onlineFriendsData, loading: onlineFriendsLoading, error: onlineFriendsError, refetch: refreshOnlineFriendsError } = useQuery(queries.GET_ONLINE_FRIENDS, {
+    const { data: onlineFriendsData, loading: onlineFriendsLoading, error: onlineFriendsError, refetch: refreshOnlineFriends} = useQuery(queries.GET_ONLINE_FRIENDS, {
         variables: { id: userid },
         pollInterval: 30000
     });
@@ -30,7 +30,6 @@ export function SocialHub(props) {
                     friendId: friendid
                 }
             });
-            console.log('Friend request sent successfully');
             alert("Friend request has been sent!")
             refreshSuggestedFriends();
         } catch (error) {
@@ -41,8 +40,6 @@ export function SocialHub(props) {
     const [handleFriendRequestMutation] = useMutation(queries.HANDLE_FRIEND_REQUEST);
     
     const handleFriendRequest = async (friendid, action) => {
-        console.log(friendid)
-        console.log(action)
         try {
             await handleFriendRequestMutation({
                 variables: {
@@ -53,9 +50,27 @@ export function SocialHub(props) {
             });
             refreshSuggestedFriends();
             refreshFriendRequestsData();
-            refreshOnlineFriendsError();
+            refreshOnlineFriends();
         } catch (error) {
             console.error('Error handling friend request:', error);
+        }
+    };
+
+    const [removeFriendMutation] = useMutation(queries.REMOVE_FRIEND);
+    
+    const removeFriendRequest = async (friendid) => {
+        try {
+            await removeFriendMutation({
+                variables: {
+                    userId: userid,
+                    friendId: friendid,
+                }
+            });
+            refreshSuggestedFriends();
+            refreshFriendRequestsData();
+            refreshOnlineFriends();
+        } catch (error) {
+            console.error('Error remove friend:', error);
         }
     };
 
@@ -77,8 +92,12 @@ export function SocialHub(props) {
                     <OnlineFriend 
                         key={index}
                         name={friend.username}
+                        _id={friend._id}
                         currentSong={friend.track_name} 
-                        songId={friend.trackid}/>
+                        songId={friend.trackid}
+                        removeFriendRequest={removeFriendRequest}
+                        hideInfo={props.hideInfo}
+                        />
                 ))
             }
 
@@ -120,9 +139,19 @@ function FriendRequest(props) {
 }
 
 function OnlineFriend(props) {
-    return(
+    const confirmRemoveFriend = () => {
+        if (window.confirm("Are you sure you want to remove this friend?")) {
+            props.removeFriendRequest(props._id);
+        }
+    };
+
+    return (
         <div className="online-friend friend-request">
-            <a>{`${props.name} is currently listening to`} <Link to={`/track/${props.songId}`}>{props.currentSong}</Link> </a>
+            <a>{`${props.name} is listening to`} <Link to={`/track/${props.songId}`}>{props.currentSong}</Link> </a>
+            {props.hideInfo &&             
+                <span className="request-span">
+                    <button id="decline-request" onClick={confirmRemoveFriend}>Remove</button>
+                </span>}
         </div>
     )
 }
