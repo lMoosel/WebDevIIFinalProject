@@ -40,6 +40,8 @@ export function ChartComponent (props) {
 
     let chartData;
     if (query2Results?.data) {
+        let songName = query1Results.data.getSpotifyCurrentlyPlaying.item.name;
+        let audioFeatures = query2Results.data.getSpotifyTrackAudioFeatures;
         chartData = {
             options: {
                 chart: {
@@ -60,8 +62,17 @@ export function ChartComponent (props) {
             },
             series: [
                 {
-                    name: query1Results.data.getSpotifyCurrentlyPlaying.item.name,
-                    data: [30, 40, 45, 50, 49, 60, 70, 91]
+                    name: songName,
+                    data: [
+                        audioFeatures.acousticness,
+                        audioFeatures.danceability,
+                        audioFeatures.energy,
+                        audioFeatures.instrumentalness,
+                        audioFeatures.liveness,
+                        0,
+                        audioFeatures.speechiness,
+                        audioFeatures.valence,
+                    ]
                 }
             ]
         };
