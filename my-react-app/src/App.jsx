@@ -13,6 +13,7 @@ import { GenreInfo } from './components/GenreInfo.jsx'
 import { ChartComponent } from './components/Chart.jsx'
 import { CurrentSong } from './components/CurrentSong.jsx'
 import { Header } from './components/Header.jsx'
+import { Artist } from './components/Artist.jsx'
 import Login from './components/Login.jsx'
 import Authorize from './components/Authorize.jsx'
 import Callback from './components/Callback.jsx'
@@ -37,8 +38,9 @@ function App() {
             <Routes>
               <Route path="/" element={<StatsScreen />} />
               <Route path="/socialhub" element={<SocialHub hideInfo={true}/>}/>
-               <Route path="/topcategories" element={<GenreInfo hideInfo={true}/>}/>
-               <Route path="/chart" element={<ChartComponent hideInfo={true}/>}/>
+              <Route path="/topcategories" element={<GenreInfo hideInfo={true}/>}/>
+              <Route path="/chart" element={<ChartComponent hideInfo={true}/>}/>
+              <Route path="/artist/:artistid" element={<Artist />}/>
               <Route path="*" element={<Navigate replace to="/" />} />
             </Routes>
             <CurrentSong />
