@@ -28,7 +28,7 @@ const main = async () => {
             profile_picture: [],
             username: "secret service member",
             spotifyId: "31azu27jcxreo7kfdw4y42tbklqa",
-            friends: [userIds.patrickHill],
+            friends: [userIds.patrickHill.toString()],
             friendRequests: []
         },
         {
@@ -39,8 +39,8 @@ const main = async () => {
             profile_picture: [],
             username: "Patrick Hill",
             spotifyId: "31hzr2pgash2mfrvgmtz4fvzgoji",
-            friends: [userIds.secretServiceMember, userIds.barrackoliObama, userIds.ghengisKhan, userIds.georgeWashington],
-            friendRequests: [userIds.jakefromstatefarm]
+            friends: [userIds.secretServiceMember.toString(), userIds.barrackoliObama.toString(), userIds.ghengisKhan.toString(), userIds.georgeWashington.toString()],
+            friendRequests: [userIds.jakefromstatefarm.toString()]
         },
         {
             _id: userIds.barrackoliObama,
@@ -50,7 +50,7 @@ const main = async () => {
             profile_picture: [],
             username: "Barrackoli Obama",
             spotifyId: "31x7an4cmslxmwiwemggdrvvj5si",
-            friends: [userIds.patrickHill],
+            friends: [userIds.patrickHill.toString()],
             friendRequests: []
         },
         {
@@ -105,7 +105,7 @@ const main = async () => {
             profile_picture: [],
             username: "George Washington",
             spotifyId: "31yt3neswp6xybr7zytj66m32rvy",
-            friends: [userIds.patrickHill],
+            friends: [userIds.patrickHill.toString()],
             friendRequests: []
         },
         {
@@ -116,7 +116,7 @@ const main = async () => {
             profile_picture: [],
             username: "Ghengis Khan",
             spotifyId: "31v2vkdhotuqhgnagezzt5c7yscm",
-            friends: [userIds.patrickHill],
+            friends: [userIds.patrickHill.toString()],
             friendRequests: []
         }
     ];
