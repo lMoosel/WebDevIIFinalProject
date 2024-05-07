@@ -45,7 +45,6 @@ export function Track(props) {
                     "Energy",
                     "Instrumentalness",
                     "Liveness",
-                    "Popularity?",
                     "Speechful",
                     "Valence"
                 ]
@@ -60,7 +59,6 @@ export function Track(props) {
                     audioFeatures.energy,
                     audioFeatures.instrumentalness,
                     audioFeatures.liveness,
-                    0,
                     audioFeatures.speechiness,
                     audioFeatures.valence,
                 ]
@@ -96,7 +94,7 @@ export function Track(props) {
                 options={chartData.options}
                 series={chartData.series}
                 type="bar"
-                width="500"
+                width="700"
             />}
             <Link to={`/`}>Home</Link>
         </div>

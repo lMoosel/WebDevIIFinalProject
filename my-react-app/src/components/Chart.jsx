@@ -52,7 +52,6 @@ export function ChartComponent (props) {
                         "Energy",
                         "Instrumentalness",
                         "Liveness",
-                        "Popularity?",
                         "Speechful",
                         "Valence"
                     ]
@@ -67,7 +66,6 @@ export function ChartComponent (props) {
                         audioFeatures.energy,
                         audioFeatures.instrumentalness,
                         audioFeatures.liveness,
-                        0,
                         audioFeatures.speechiness,
                         audioFeatures.valence,
                     ]
@@ -81,16 +79,19 @@ export function ChartComponent (props) {
             {!props.hideInfo && <button className="info-button" onClick={() => {location.href=`/track/${query1Results.data.getSpotifyCurrentlyPlaying.item.id}`}}>i</button>}
             <h1>CHART</h1>
 
-            { chartData && <Chart
-                options={chartData.options}
-                series={chartData.series}
-                type="bar"
-                width="500"
-            /> }
-            { !chartData && <>
-                <p>No track currently playing!</p>
-            </>}
-
+            <div style={{ display: 'flex', justifyContent: 'center' }}>
+                {chartData && (
+                    <Chart
+                        options={chartData.options}
+                        series={chartData.series}
+                        type="bar"
+                        width="700"
+                    />
+                )}
+                { !chartData && <>
+                    <p>No track currently playing!</p>
+                </>}
+            </div>
         </div>
     );
 }
