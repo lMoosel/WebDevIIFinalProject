@@ -73,12 +73,6 @@ export function GenreInfo(props) {
                     <Link to={`/album/${album.id}`}>{album.name}</Link>
                 </div>
             ))}
-            <br />
-            <br />
-            <br />
-            <br />
-            <br />
-            <br />
         </div>
     );
 }

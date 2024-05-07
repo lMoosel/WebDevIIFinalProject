@@ -91,7 +91,6 @@
   white-space: nowrap;
   
   padding: .5%;
-
 }
 
 #Current-song-div {
@@ -104,7 +103,7 @@
 
   align-content: center;
   white-space: nowrap;
-  height: 10vh;
+  height: 5vh;
 
   border-width: 1px;
   border-style: solid;
