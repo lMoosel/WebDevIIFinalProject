@@ -1,7 +1,7 @@
 import { CookiesProvider, useCookies } from 'react-cookie';
 import { useQuery, useMutation } from '@apollo/client';
 import queries from '../graphQL/index.js';
-import mutations from '../graphQL/index.js';
+import { Link } from 'react-router-dom';
 
 export function SocialHub(props) {
     const [cookies, setCookie] = useCookies(['user']);
@@ -20,10 +20,7 @@ export function SocialHub(props) {
         variables: { id: userid }
     });
 
-    console.log("Testing")
-    console.log(friendRequestsData)
-
-    const [sendFriendRequestMutation] = useMutation(mutations.SEND_FRIEND_REQUEST);
+    const [sendFriendRequestMutation] = useMutation(queries.SEND_FRIEND_REQUEST);
     
     const sendFriendRequest = async (friendid) => {
         try {
@@ -41,10 +38,11 @@ export function SocialHub(props) {
         }
     };
 
-    const [handleFriendRequestMutation] = useMutation(mutations.HANDLE_FRIEND_REQUEST);
+    const [handleFriendRequestMutation] = useMutation(queries.HANDLE_FRIEND_REQUEST);
     
     const handleFriendRequest = async (friendid, action) => {
         console.log(friendid)
+        console.log(action)
         try {
             await handleFriendRequestMutation({
                 variables: {
@@ -76,11 +74,15 @@ export function SocialHub(props) {
             <h3>Online Friends:</h3>
             {
                 onlineFriendsData?.getOnlineFriends.map((friend, index) => (
-                    <OnlineFriend key={index} name={friend.username} currentSong={friend.track_name} />
+                    <OnlineFriend 
+                        key={index}
+                        name={friend.username}
+                        currentSong={friend.track_name} 
+                        songId={friend.trackid}/>
                 ))
             }
 
-            <h3>Incoming Friend requests:</h3>
+            <h3>Incoming Friend Requests:</h3>
             {
                 friendRequestsData?.getFriendRequests.map((friend, index) => (
                     <FriendRequest 
@@ -120,8 +122,7 @@ function FriendRequest(props) {
 function OnlineFriend(props) {
     return(
         <div className="online-friend friend-request">
-            <a>{props.name}</a>
-            <a>{props.currentSong}</a>
+            <a>{`${props.name} is currently listening to`} <Link to={`/track/${props.songId}`}>{props.currentSong}</Link> </a>
         </div>
     )
 }
