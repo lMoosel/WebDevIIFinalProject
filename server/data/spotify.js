@@ -199,18 +199,21 @@ export const getFavoriteTracks = async (_id, time_range, limit = 10) => {
 };
 
 export const getFavoriteAlbums = async (_id, time_range, limit = 10) => {
-  // Use 50 tracks to decide favorite
+  // Use top 50 tracks to decide favorite
   const data = await getFavoriteTracks(_id, time_range, 50);
-  const albums = data.items.map((album) => album.album.name);
+  let albums = data.items.map((song) => song.album);
 
-  const counts = {};
+  let counts = {};
   for (const album of albums) {
-    counts[album] = counts[album] ? counts[album] + 1 : 1;
+    counts[album.name] = counts[album.name] ? counts[album.name] + 1 : 1;
   }
 
   // Sort descending
-  let top = Object.keys(counts).sort((a, b) => counts[b] > counts[a]);
-  top = top.filter((album) => counts[album] > 1);
+  let top = albums.sort((a, b) => counts[b.name] - counts[a.name]);
+  top = top.filter(
+    (v, i, a) =>
+      counts[v.name] > 1 && a.findIndex((v2) => v2.name === v.name) === i,
+  );
 
   return top.slice(0, limit);
 };
