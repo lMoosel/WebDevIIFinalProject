@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import reactLogo from './assets/react.svg'
 import viteLogo from '/vite.svg'
-
+import { useLocation } from 'react-router-dom';
 import {HomeScreen} from './components/HomeScreen.jsx'
 import {StatsScreen} from './components/StatsScreen.jsx'
 import { BrowserRouter as Router, Route, Link, Routes, Navigate } from 'react-router-dom';
@@ -23,7 +23,7 @@ import Callback from './components/Callback.jsx'
 function App() {
   const [cookies, setCookie, removeCookie] = useCookies(['user']);
   const [isLoggedIn, setIsLoggedIn] = useState(!!cookies.user);
-
+  const location = useLocation();
   useEffect(() => {
     setIsLoggedIn(!!cookies.user);
   }, [cookies.user]);
@@ -51,12 +51,20 @@ function App() {
             <CurrentSong />
           </>
         ) : (
+          <>
+          {location.pathname !== '/' && (
+            <div>
+              <Link to={`/`}>Home</Link>
+            </div>
+          )}
           <Routes>
             <Route path="/login" element={<Login />} />
             <Route path="/callback" element={<Callback />} />
             <Route path="/" element={<Authorize />} />
             <Route path="*" element={<Navigate replace to="/" />} />
           </Routes>
+          
+          </>
         )}
     </CookiesProvider>
   );

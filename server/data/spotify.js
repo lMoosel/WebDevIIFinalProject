@@ -10,6 +10,7 @@ import {
   push,
 } from "./cache.js";
 import { isValidId } from "../helpers.js";
+import * as errors from "../config/GraphQLErrors.js";
 import { ObjectId } from "mongodb";
 
 export const getAccessToken = async (_id) => {
@@ -61,7 +62,10 @@ export const handleResponse = async (response, key, _id, exp, hasParams) => {
   const cache = await checkCache(key);
   if (!response) {
     if (!cache) {
-      throw new GraphQLError("Server did not properly cache the first query.");
+      throw new GraphQLError(
+        "Server did not properly cache the first query.",
+        errors.INTERNAL_ERROR,
+      );
     }
     return cache.data;
   }
@@ -124,7 +128,7 @@ export const getAxiosCall = async (url, access_token, etag, params) => {
       };
     } else {
       console.log(response);
-      throw new GraphQLError(response.data);
+      throw new GraphQLError(response.data, errors.INTERNAL_ERROR);
     }
   } catch (error) {
     throw new GraphQLError(error);
@@ -136,7 +140,7 @@ export const get = async (_id, key, exp, url, params = null) => {
   const cache = await checkCache(key);
   const access_token = await getAccessToken(_id);
   if (!access_token) {
-    throw new GraphQLError("Not authorized");
+    throw new GraphQLError("Not authorized", errors.NOT_AUTHORIZED);
   }
   let etag = null;
   if (cache) {
@@ -224,7 +228,7 @@ export const getFavoriteGenres = async (_id, time_range, limit = 10) => {
 
   // Can only get genre from artist
   const genres = data.items.map((artist) => artist.genres).flat();
-  
+
   const counts = {};
   // Counts frequenct of genre
   for (const genre of genres) {
