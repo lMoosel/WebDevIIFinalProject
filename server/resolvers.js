@@ -368,7 +368,7 @@ export const resolvers = {
         const response = await get(
           _id,
           `getSpotifyCurrentlyPlaying:${_id}`,
-          30,
+          5,
           "https://api.spotify.com/v1/me/player/currently-playing",
         );
         return response;
