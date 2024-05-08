@@ -16,6 +16,7 @@ import { Header } from './components/Header.jsx'
 import { Artist } from './components/Artist.jsx'
 import { Album } from './components/Album.jsx'
 import { Track } from './components/Track.jsx'
+import { User } from './components/User.jsx'
 import Login from './components/Login.jsx'
 import Authorize from './components/Authorize.jsx'
 import Callback from './components/Callback.jsx'
@@ -44,6 +45,7 @@ function App() {
               <Route path="/artist/:artistid" element={<Artist/>}/>
               <Route path="/album/:albumid" element={<Album/>}/>
               <Route path="/track/:trackid" element={<Track/>}/>
+              <Route path="/user/:userid" element={<User/>}/>
               <Route path="*" element={<Navigate replace to="/" />} />
             </Routes>
             <CurrentSong />

@@ -279,3 +279,12 @@ img {
 #username-header{
   font-size: 250%
 }
+
+.user-container {
+  display: flex;
+}
+
+.user-info, .friend-info {
+  flex: 1;
+  margin-right: 20px; 
+}

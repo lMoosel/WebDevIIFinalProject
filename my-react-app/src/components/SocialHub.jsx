@@ -131,7 +131,7 @@ export function SocialHub(props) {
 function FriendRequest(props) {
     return (
     <div className="friend-request">
-        <span className="request-span"><a>{props.name}</a></span>
+        <span className="request-span"><a><Link to={`/user/${props._id}`}>{props.name}</Link></a></span>
         <span className="request-span"><button id="accept-request" onClick={() => props.handleFriendRequest(props._id, "accept")}>Accept</button></span>
         <span className="request-span"><button id="decline-request" onClick={() => props.handleFriendRequest(props._id, "reject")}>Reject</button></span>
     </div>
@@ -147,7 +147,7 @@ function OnlineFriend(props) {
 
     return (
         <div className="online-friend friend-request">
-            <a>{`${props.name} is listening to`} <Link to={`/track/${props.songId}`}>{props.currentSong}</Link> </a>
+            <span className="request-span"><a>{`${props.name} is listening to`} <Link to={`/track/${props.songId}`}>{props.currentSong}</Link></a></span>
             {props.hideInfo &&             
                 <span className="request-span">
                     <button id="decline-request" onClick={confirmRemoveFriend}>Remove</button>
@@ -159,7 +159,7 @@ function OnlineFriend(props) {
 function SuggestedFriend(props) {
     return (
         <div className="suggested-friend friend-request"> 
-            <span><a>{props.name}</a></span>
+            <span><a><Link to={`/user/${props._id}`}>{props.name}</Link></a></span>
             <span className="request-span"><button onClick={() => props.sendFriendRequest(props._id)}>Send Request</button></span>
         </div>
 
