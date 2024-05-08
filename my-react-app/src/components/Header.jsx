@@ -26,6 +26,9 @@ export function Header({ logout }) {
                     <span id="Home-button">
                         <button><Link to={`/`}>Home</Link></button>
                     </span>
+                    <span id="Explain-button">
+                        <button><Link to={`/explain`}>What do all these stats mean?</Link></button>
+                    </span>
                 </div>
             }
             {!user &&

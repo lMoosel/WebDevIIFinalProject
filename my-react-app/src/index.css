@@ -215,6 +215,15 @@
   top: 25%;
 }
 
+#Explain-button {
+  position: absolute;
+
+  margin: auto;
+
+  right: 9vw;
+  top: 25%;
+}
+
 #Home-Login-button {
   position: absolute;
 
