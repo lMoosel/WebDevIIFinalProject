@@ -38,6 +38,9 @@ export function Track(props) {
             chart: {
                 id: "basic-bar"
             },
+            fill: {
+                colors: "#1DB954"
+            },
             xaxis: {
                 categories: [
                     "Acousticness",
@@ -47,7 +50,22 @@ export function Track(props) {
                     "Liveness",
                     "Speechful",
                     "Valence"
-                ]
+                ],
+                labels: {
+                    style: {
+                        colors : "#1DB954"
+                    }
+                }
+            },
+            yaxis: {
+                min: 0,
+                max: 1
+            },
+            title: {
+                text: track.name + " by " + track.artists.map(artist => artist.name).join(', '),
+                style: {
+                    color: "#1DB954"
+                }
             }
         },
         series: [

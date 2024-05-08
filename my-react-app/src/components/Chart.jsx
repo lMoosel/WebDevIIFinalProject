@@ -40,7 +40,7 @@ export function ChartComponent (props) {
     if (query2Results.data) {
         let CPResults = query1Results.data.getSpotifyCurrentlyPlaying;
         let songName = CPResults.item.name;
-        let artistName = CPResults.item.artists[0].name;
+        let artistName = CPResults.item.artists.map(artist => artist.name).join(', ');
         let audioFeatures = query2Results.data.getSpotifyTrackAudioFeatures;
         chartData = {
             options: {
