@@ -185,7 +185,7 @@ function OfflineFriend(props) {
 
     return (
         <div className="online-friend friend-request">
-            <span className="request-span"><a>{`${props.name}`}</a></span>
+            <span className="request-span"><a><Link to={`/user/${props._id}`}>{props.name}</Link></a></span>
             {props.hideInfo &&             
                 <span className="request-span">
                     <button id="decline-request" onClick={confirmRemoveFriend}>Remove</button>
