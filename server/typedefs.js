@@ -12,6 +12,8 @@ type Query {
     getSpotifyTopGenres(_id: String!, time_range: String!, limit: Int): [String!]
     getSpotifyProfile(_id: String!): SpotifyProfile
     getSpotifyArtist(_id: String!, artistId: String!): Artist
+    getSpotifyArtistTopSongs(_id: String!, artistId: String!): [Track]
+    getSpotifyArtistRelatedArtists(_id: String!, artistId: String!): [Artist]
     getSpotifyTrack(_id: String!, trackId: String!): Track
     getSpotifyAlbum(_id: String!, albumId: String!): Album
     getSpotifySearch(_id: String!, query: String!, type: [String!], limit: Int!, offset: Int!): SearchResponse

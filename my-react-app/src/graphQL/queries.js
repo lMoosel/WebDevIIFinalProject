@@ -331,6 +331,32 @@ const GET_ONLINE_FRIENDS = gql`
       }
     }
   }`;
+
+  const GET_RELATED_ARTISTS = gql`
+  query Query($id: String!, $artistId: String!) {
+    getSpotifyArtistRelatedArtists(_id: $id, artistId: $artistId) {
+      genres
+      name
+      id
+      popularity
+    }
+  }`;
+
+  const GET_ARTIST_TOP = gql`
+  query Query($id: String!, $artistId: String!) {
+    getSpotifyArtistTopSongs(_id: $id, artistId: $artistId) {
+      album {
+        id
+        name
+      }
+      artists {
+        name
+      }
+      id
+      name
+    }
+  }`;
+
 const exported = {
     GET_SPOTIFY_AUTH_URL,
     GET_SPOTIFY_CURRENTLY_PLAYING,
@@ -349,6 +375,8 @@ const exported = {
     SEARCH_USERS_BY_NAME,
     GET_SUGGESTED_FRIENDS,
     GET_FRIEND_REQUESTS,
-    GET_ONLINE_FRIENDS
+    GET_ONLINE_FRIENDS,
+    GET_RELATED_ARTISTS,
+    GET_ARTIST_TOP
 }
 export default exported;

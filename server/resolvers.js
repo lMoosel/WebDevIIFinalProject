@@ -357,6 +357,32 @@ export const resolvers = {
         throw new GraphQLError(error.message, error);
       }
     },
+    getSpotifyArtistTopSongs: async (_, { _id, artistId }) => {
+      try {
+        const response = await get(
+          _id,
+          `getSpotifyArtistTopSongs:${artistId}`,
+          60 * 60 * 24,
+          `https://api.spotify.com/v1/artists/${artistId}/top-tracks`,
+        );
+        return response.tracks;
+      } catch (error) {
+        throw new GraphQLError(error.message, error);
+      }
+    },
+    getSpotifyArtistRelatedArtists: async (_, { _id, artistId }) => {
+      try {
+        const response = await get(
+          _id,
+          `getSpotifyArtistRelatedArtists:${artistId}`,
+          60 * 60 * 24,
+          `https://api.spotify.com/v1/artists/${artistId}/related-artists`,
+        );
+        return response.artists;
+      } catch (error) {
+        throw new GraphQLError(error.message, error);
+      }
+    },
     getSpotifyTrack: async (_, { _id, trackId }) => {
       try {
         const response = await get(
