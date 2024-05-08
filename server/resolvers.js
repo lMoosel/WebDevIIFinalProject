@@ -91,7 +91,7 @@ export const resolvers = {
             );
           }
         }
-        let result = { online: onlineFriends, offline: offlineFriends }
+        let result = { online: onlineFriends, offline: offlineFriends };
         return result;
       } catch (error) {
         throw new GraphQLError(error.message, error);
@@ -110,8 +110,22 @@ export const resolvers = {
           throw new GraphQLError("Could not find user", errors.BAD_USER_DATA);
         }
         const friends = user.friends.map(id => new ObjectId(id));
+        // Retrieve the friends' documents from the database
+        const friendDocs = await users.find({ _id: { $in: friends } }).toArray();
+        
+        // Retrieve the friends' friends arrays
+        const friendsFriends = [];
+        for (const friend of friendDocs) {
+            for (let i = 0; i < friend.friends.length; i++) {
+              const prospectiveFriend = await users.findOne({ _id: new ObjectId(friend.friends[i])});
+              if (prospectiveFriend) {
+                  friendsFriends.push(new ObjectId(friend.friends[i]));
+              }
+          }
+        }
+        
         const suggested = await users.find({
-          _id: { $nin: friends, $ne: new ObjectId(_id) },
+          _id: { $in: friendsFriends, $ne: new ObjectId(_id) },
           friendRequests: { $nin: [_id] }
         }).toArray();
   
