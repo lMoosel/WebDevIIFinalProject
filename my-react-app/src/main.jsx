@@ -13,7 +13,7 @@ import {
 const client = new ApolloClient({
   cache: new InMemoryCache(),
   link: new HttpLink({
-    uri: process.env.BACKEND_URL || 'http://localhost:4000'
+    uri: 'http://localhost:4000'
   })
 });
 ReactDOM.createRoot(document.getElementById('root')).render(
