@@ -105,7 +105,7 @@ const main = async () => {
             profile_picture: [],
             username: "George Washington",
             spotifyId: "31yt3neswp6xybr7zytj66m32rvy",
-            friends: [userIds.patrickHill.toString(), userIds.drizzydrakefan123()],
+            friends: [userIds.patrickHill.toString(), userIds.drizzydrakefan123.toString()],
             friendRequests: []
         },
         {
