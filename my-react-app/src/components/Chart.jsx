@@ -47,6 +47,9 @@ export function ChartComponent (props) {
                 chart: {
                     id: "basic-bar"
                 },
+                fill: {
+                    colors: "#1DB954"
+                },
                 xaxis: {
                     categories: [
                         "Acousticness",
@@ -62,6 +65,10 @@ export function ChartComponent (props) {
                             colors : "#1DB954"
                         }
                     }
+                },
+                yaxis: {
+                    min: 0,
+                    max: 1
                 },
                 title: {
                     text: songName + " by " + artistName,
