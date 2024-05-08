@@ -40,7 +40,7 @@ const main = async () => {
             username: "Patrick Hill",
             spotifyId: "31hzr2pgash2mfrvgmtz4fvzgoji",
             friends: [userIds.secretServiceMember.toString(), userIds.barrackoliObama.toString(), userIds.ghengisKhan.toString(), userIds.georgeWashington.toString()],
-            friendRequests: [userIds.jakefromstatefarm.toString()]
+            friendRequests: [userIds.jakefromstatefarm.toString(),userIds.tacoboy76.toString()]
         },
         {
             _id: userIds.barrackoliObama,
@@ -50,7 +50,7 @@ const main = async () => {
             profile_picture: [],
             username: "Barrackoli Obama",
             spotifyId: "31x7an4cmslxmwiwemggdrvvj5si",
-            friends: [userIds.patrickHill.toString()],
+            friends: [userIds.patrickHill.toString(), userIds.sandeep.toString()],
             friendRequests: []
         },
         {
@@ -61,7 +61,7 @@ const main = async () => {
             profile_picture: [],
             username: "Sandeep",
             spotifyId: "313wkjijex45xwumdq3fgly2rkl4",
-            friends: [],
+            friends: [userIds.barrackoliObama.toString()],
             friendRequests: []
         },
         {
@@ -83,7 +83,7 @@ const main = async () => {
             profile_picture: [],
             username: "drizzydrakefan123",
             spotifyId: "31uejdfgjnv4wxihxufsofcar6my",
-            friends: [],
+            friends: [userIds.georgeWashington.toString()],
             friendRequests: []
         },
         {
@@ -94,7 +94,7 @@ const main = async () => {
             profile_picture: [],
             username: "jakefromstatefarm",
             spotifyId: "31tzu7uhq4utz67hdul4avbfogzi",
-            friends: [],
+            friends: [userIds.ghengisKhan.toString()],
             friendRequests: []
         },
         {
@@ -105,7 +105,7 @@ const main = async () => {
             profile_picture: [],
             username: "George Washington",
             spotifyId: "31yt3neswp6xybr7zytj66m32rvy",
-            friends: [userIds.patrickHill.toString()],
+            friends: [userIds.patrickHill.toString(), userIds.drizzydrakefan123()],
             friendRequests: []
         },
         {
@@ -116,7 +116,7 @@ const main = async () => {
             profile_picture: [],
             username: "Ghengis Khan",
             spotifyId: "31v2vkdhotuqhgnagezzt5c7yscm",
-            friends: [userIds.patrickHill.toString()],
+            friends: [userIds.patrickHill.toString(),  userIds.jakefromstatefarm.toString()],
             friendRequests: []
         }
     ];
