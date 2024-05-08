@@ -52,7 +52,7 @@ export function StatsExplain(props) {
             <h3>Key</h3>
             <p> The key the track is in. Integers map to pitches using standard Pitch Class notation. 
                 E.g. 0 = C, 1 = C♯/D♭, 2 = D, and so on. If no key was detected, the value is -1.</p>
-            <h3>Duration (ms)</h3>
+            <h3>Duration</h3>
             <p> The duration of the track in milliseconds.</p>
             <h3>Tempo</h3>
             <p> The overall estimated tempo of a track in beats per minute (BPM). In musical terminology, 
