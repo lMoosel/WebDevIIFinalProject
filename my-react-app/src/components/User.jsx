@@ -233,6 +233,13 @@ export function User(props) {
                         height="400"
                     />
                 )}
+                {!compare && 
+                    <>
+                        <div>
+                            <EditUser user={user}/>
+                        </div>
+                    </>
+                }
             </div>
             {compare && (
                 <div className="friend-info">
