@@ -240,7 +240,7 @@ export function User(props) {
                     <>
                         <EditUser user={user}/>
                         <DeleteUser user={user} logoutFunc={props.logoutFunc}/>
-                        <br/><br/><br/> {/* temporary */}
+                        <br/><br/><br/>
                     </>
                 }
             </div>

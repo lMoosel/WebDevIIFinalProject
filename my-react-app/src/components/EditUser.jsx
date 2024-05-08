@@ -28,7 +28,7 @@ function EditUser (props) {
 
     const [editUserMutation] = useMutation(queries.EDIT_USER);
 
-    const onSubmitEditArtist = async (e) => {
+    const onSubmitEditArtist = (e) => {
         e.preventDefault();
         let emailInput = document.getElementById("editUserEmailInput");
         let newPasswordInput = document.getElementById("editUserNewPasswordInput");
@@ -44,7 +44,7 @@ function EditUser (props) {
             alert(e);
             return;
         }
-        let r = await editUserMutation({
+        let r = editUserMutation({
             variables: {
                 _id: user._id,
                 newEmail,
