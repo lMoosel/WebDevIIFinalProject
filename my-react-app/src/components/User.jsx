@@ -70,7 +70,7 @@ export function User(props) {
     userStats = userStatsData?.getUserStats;
     friendInfo = friendData?.getUser;
     friendStats = friendStatsData?.getUserStats;
-    onlineFriend = onlineFriendsData?.getOnlineFriends.find(friend => friend._id === userid);
+    onlineFriend = onlineFriendsData?.getOnlineFriends.online.find(friend => friend._id === userid);
 
     // Visiting not your own user page
     if (userid !== user._id) {

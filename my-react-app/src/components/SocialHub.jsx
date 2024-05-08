@@ -78,8 +78,13 @@ export function SocialHub(props) {
         return <p>Loading...</p>;
     }
     if (friendRequestsError || onlineFriendsError || suggestedFriendsError) {
+        console.log(friendRequestsError)
+        console.log(onlineFriendsData)
+        console.log(suggestedFriendsError)
         return <p>Error: Please try again</p>;
     }
+
+    console.log(onlineFriendsData)
 
     return (
         <div id="Social-hub-div">
@@ -88,7 +93,7 @@ export function SocialHub(props) {
 
             <h3>Online Friends:</h3>
             {
-                onlineFriendsData?.getOnlineFriends.map((friend, index) => (
+                onlineFriendsData?.getOnlineFriends.online.map((friend, index) => (
                     <OnlineFriend 
                         key={index}
                         name={friend.username}
@@ -99,6 +104,21 @@ export function SocialHub(props) {
                         hideInfo={props.hideInfo}
                         />
                 ))
+            }
+
+            {props.hideInfo && <>
+                <h3>Offline Friends:</h3>
+    `            {
+                    onlineFriendsData?.getOnlineFriends.offline.map((friend, index) => (
+                        <OfflineFriend 
+                            key={index}
+                            name={friend.username}
+                            _id={friend._id}
+                            removeFriendRequest={removeFriendRequest}
+                            hideInfo={props.hideInfo}
+                        />
+                    ))
+                }</>
             }
 
             <h3>Incoming Friend Requests:</h3>
@@ -147,7 +167,25 @@ function OnlineFriend(props) {
 
     return (
         <div className="online-friend friend-request">
-            <span className="request-span"><a>{`${props.name} is listening to`} <Link to={`/track/${props.songId}`}>{props.currentSong}</Link></a></span>
+            <span className="request-span"><a><Link to={`/user/${props._id}`}>{props.name}</Link> {` is listening to `} <Link to={`/track/${props.songId}`}>{props.currentSong}</Link></a></span>
+            {props.hideInfo &&             
+                <span className="request-span">
+                    <button id="decline-request" onClick={confirmRemoveFriend}>Remove</button>
+                </span>}
+        </div>
+    )
+}
+
+function OfflineFriend(props) {
+    const confirmRemoveFriend = () => {
+        if (window.confirm("Are you sure you want to remove this friend?")) {
+            props.removeFriendRequest(props._id);
+        }
+    };
+
+    return (
+        <div className="online-friend friend-request">
+            <span className="request-span"><a>{`${props.name}`}</a></span>
             {props.hideInfo &&             
                 <span className="request-span">
                     <button id="decline-request" onClick={confirmRemoveFriend}>Remove</button>

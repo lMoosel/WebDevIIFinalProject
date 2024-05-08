@@ -313,13 +313,22 @@ const GET_SUGGESTED_FRIENDS = gql`
 const GET_ONLINE_FRIENDS = gql`
   query Query($id: String!) {
     getOnlineFriends(_id: $id) {
-      _id
-      username
-      profile_picture {
-        url
+      online {
+        _id
+        username
+        track_name
+        trackid
+        profile_picture {
+          url
+        }
       }
-      track_name
-      trackid
+      offline {
+        _id
+        username
+        profile_picture {
+          url
+        }
+      }
     }
   }`;
 const exported = {

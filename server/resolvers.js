@@ -55,6 +55,7 @@ export const resolvers = {
         }
         const friends = user.friends;
         const onlineFriends = [];
+        const offlineFriends = [];
         for (const friendId of friends) {
           try {
             const playingStatus = await get(
@@ -72,12 +73,20 @@ export const resolvers = {
                 track_name: playingStatus.item.name,
                 trackid: playingStatus.item.id
               });
+            } else {
+              const friendDetails = await users.findOne({ _id: new ObjectId(friendId) });
+              offlineFriends.push({
+                _id: friendDetails._id.toString(),
+                username: friendDetails.username,
+                profile_picture: friendDetails.profile_picture,
+              });
             }
           } catch (error2) {
             console.error(`Error fetching Spotify currently playing for friend ${friendId}:`, error2);
           }
         }
-        return onlineFriends;
+        let result = { online: onlineFriends, offline: offlineFriends }
+        return result;
       } catch (error) {
         throw new GraphQLError(error);
       }
@@ -95,8 +104,22 @@ export const resolvers = {
           throw new GraphQLError("Could not find user");
         }
         const friends = user.friends.map(id => new ObjectId(id));
+
+        const friendDocs = await users.find({ _id: { $in: friends } }).toArray();
+
+        // Retrieve the friends' friends arrays
+        const friendsFriends = [];
+        for (const friend of friendDocs) {
+            for (let i = 0; i < friend.friends.length; i++) {
+              const potentialFriend = await users.findOne({ _id: new ObjectId(friend.friends[i]) });
+              if (potentialFriend) {
+                  friendsFriends.push(new ObjectId(friend.friends[i]));
+              }
+          }
+        }
+        
         const suggested = await users.find({
-          _id: { $nin: friends, $ne: new ObjectId(_id) },
+          _id: { $in: friendsFriends, $ne: new ObjectId(_id) },
           friendRequests: { $nin: [_id] }
         }).toArray();
   

@@ -4,7 +4,7 @@ type Query {
     getUser(_id: String!): User
     getSuggestedFriends(_id: String!): [Friend]
     getFriendRequests(_id: String!): [Friend]
-    getOnlineFriends(_id: String!): [OnlineFriend]
+    getOnlineFriends(_id: String!): OnlineFriendsResponse
     getUserStats(_id: String!): StatResponse
     getSpotifyTopTracks(_id: String!, time_range: String!, offset: Int!, limit: Int!): TracksResponse
     getSpotifyTopArtists(_id: String!, time_range: String!, offset: Int!, limit: Int!): ArtistsResponse
@@ -32,6 +32,10 @@ type Mutation {
     removeFriend(userId: String!, friendId: String!): String
 }
 
+type OnlineFriendsResponse {
+    online: [OnlineFriend]
+    offline: [Friend]
+}
 type User {
     _id: String!
     email: String!
