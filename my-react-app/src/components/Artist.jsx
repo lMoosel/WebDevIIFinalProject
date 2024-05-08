@@ -39,7 +39,6 @@ export function Artist(props) {
                     />
                 )}
             </div>
-            <Link to={`/`}>Home</Link>
         </div>
     )
 }

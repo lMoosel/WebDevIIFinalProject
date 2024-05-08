@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useQuery } from '@apollo/client';
 import queries from '../graphQL/index.js';
 import { useCookies } from 'react-cookie';
+import { Link } from 'react-router-dom';
 
 export function CurrentSong (props) {
     
@@ -36,7 +37,15 @@ export function CurrentSong (props) {
             {error && <p>Error: {error.message}</p>}
             {!loading && !error && !data && <p>Unable to fetch authentication URL, please try again later.</p>}
             {data && data.getSpotifyCurrentlyPlaying && <>
-                <div id="cs-div"><h1 id="current-song">{ data.getSpotifyCurrentlyPlaying.item.name } by {data.getSpotifyCurrentlyPlaying.item.artists[0].name}</h1></div>
+                <div id="cs-div"><h1 id="current-song">
+                    <Link to={`/track/${data.getSpotifyCurrentlyPlaying.item.id}`}>{data.getSpotifyCurrentlyPlaying.item.name}</Link>
+                    {" "} by {" "}
+                    {data.getSpotifyCurrentlyPlaying.item.artists.map((artist, index) => (
+                    <span key={index}>
+                         {index > 0 && ", "}
+                         <Link to={`/artist/${artist.id}`}>{artist.name}</Link>
+                     </span>))}
+                </h1></div>
             </>}
             {data && !data.getSpotifyCurrentlyPlaying && <>
                 <p>No song currently playing!</p>

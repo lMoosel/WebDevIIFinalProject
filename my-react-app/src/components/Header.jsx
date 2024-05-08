@@ -1,5 +1,6 @@
 import { CookiesProvider, useCookies } from 'react-cookie';
 import { useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 export function Header({ logout }) {
     
     const [cookies, setCookie, removeCookie] = useCookies(['user']);
@@ -7,10 +8,8 @@ export function Header({ logout }) {
     console.log("user: ", user)
     return (
         <div id="header">
-
             {user && 
                 <div>
-                    {/* <span><a>PROFILE PICTURE</a></span> */}
                     { user.profile_picture && user.profile_picture.length ?
                         <div id="pfp-div"><img 
                             src={ user.profile_picture[0].url }
@@ -24,9 +23,11 @@ export function Header({ logout }) {
                     <span id="Login-Logout-button">
                         <button onClick={logout}>Logout</button>
                     </span>
+                    <span id="Home-button">
+                        <Link to={`/`}>Home</Link>
+                    </span>
                 </div>
             }
-
             {!user &&
                 <button id="Login-Logout-button">Login/Signup</button>    
             }

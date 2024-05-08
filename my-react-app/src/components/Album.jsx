@@ -47,7 +47,6 @@ export function Album(props) {
                     />
                 )}
             </div>
-            <Link to={`/`}>Home</Link>
         </div>
     )
 }

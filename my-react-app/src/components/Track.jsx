@@ -114,7 +114,6 @@ export function Track(props) {
                 type="bar"
                 width="700"
             />}
-            <Link to={`/`}>Home</Link>
         </div>
     )
 }

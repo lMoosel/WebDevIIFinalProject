@@ -207,6 +207,15 @@
   top: 25%;
 }
 
+#Home-button {
+  position: absolute;
+
+  margin: auto;
+
+  right: 5vw;
+  top: 25%;
+}
+
 #header {
 
   position: fixed;
@@ -256,8 +265,8 @@ img {
 
   overflow: hidden;
 
-  width: 3.3%;
-  height: 87%;
+  width: 3%;
+  height: 112%;
 }
 
 #username-header{
