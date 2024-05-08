@@ -45,7 +45,7 @@ function App() {
               <Route path="/artist/:artistid" element={<Artist/>}/>
               <Route path="/album/:albumid" element={<Album/>}/>
               <Route path="/track/:trackid" element={<Track/>}/>
-              <Route path="/user/:userid" element={<User/>}/>
+              <Route path="/user/:userid" element={<User logoutFunc={handleLogout}/>}/>
               <Route path="*" element={<Navigate replace to="/" />} />
             </Routes>
             <CurrentSong />

@@ -5,6 +5,9 @@ import { useCookies } from 'react-cookie';
 import Chart from "react-apexcharts";
 import { TopInfo } from './TopInfo.jsx';
 
+import EditUser from "./EditUser.jsx";
+import DeleteUser from "./DeleteUser.jsx";
+
 export function User(props) {
     const [cookies] = useCookies(['user']);
     const user = cookies.user;
@@ -235,9 +238,9 @@ export function User(props) {
                 )}
                 {!compare && 
                     <>
-                        <div>
-                            <EditUser user={user}/>
-                        </div>
+                        <EditUser user={user}/>
+                        <DeleteUser user={user} logoutFunc={props.logoutFunc}/>
+                        <br/><br/><br/> {/* temporary */}
                     </>
                 }
             </div>
