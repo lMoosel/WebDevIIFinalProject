@@ -96,9 +96,11 @@ const GET_SPOTIFY_TRACK = gql`
     getSpotifyTrack (_id: $id, trackId: $trackId) {
       album {
         id
+        name
       }
       artists {
         id
+        name
       }
       available_markets
       disc_number
@@ -203,6 +205,19 @@ const GET_SPOTIFY_PROFILE = gql`
     }
   }`;
 
+  const GET_SPOTIFY_TOP_ALBUMS = gql`
+  query Query($id: String!, $timeRange: String!, $limit: Int!) {
+    getSpotifyTopAlbums(_id: $id, time_range: $timeRange, limit: $limit) {
+      name
+      id
+    }
+  }`;
+
+  const GET_SPOTIFY_TOP_GENRES = gql`
+  query Query($id: String!, $timeRange: String!, $limit: Int!) {
+    getSpotifyTopGenres(_id: $id, time_range: $timeRange, limit: $limit)
+  }`;
+
   const GET_SPOTIFY_TRACK_AUDIO_FEATURES = gql`
   query Query($id: String!, $trackId: String!) {
     getSpotifyTrackAudioFeatures(_id: $id, trackId: $trackId) {
@@ -241,6 +256,22 @@ const GET_SPOTIFY_PROFILE = gql`
     }
   }`;
 
+  const SEARCH_USERS_BY_NAME = gql`
+  query Query($query: String!) {
+    searchUsersByName(query: $query) {
+      _id
+      email
+      username
+      friendRequests
+      friends
+      profile_picture {
+        url
+        height
+        width
+      }
+    }
+  }`;
+
   const GET_USER_STATS = gql`
   query Query($id: String!) {
     getUserStats(_id: $id) {
@@ -259,7 +290,38 @@ const GET_SPOTIFY_PROFILE = gql`
       valence
     }
   }`;
-
+const GET_SUGGESTED_FRIENDS = gql`
+  query Query($id: String!) {
+    getSuggestedFriends(_id: $id) {
+      _id
+      username
+      profile_picture {
+        url
+      }
+    }
+  }`;
+  const GET_FRIEND_REQUESTS = gql`
+  query Query($id: String!) {
+    getFriendRequests(_id: $id) {
+      _id
+      username
+      profile_picture {
+        url
+      }
+    }
+  }`;
+const GET_ONLINE_FRIENDS = gql`
+  query Query($id: String!) {
+    getOnlineFriends(_id: $id) {
+      _id
+      username
+      profile_picture {
+        url
+      }
+      track_name
+      trackid
+    }
+  }`;
 const exported = {
     GET_SPOTIFY_AUTH_URL,
     GET_SPOTIFY_CURRENTLY_PLAYING,
@@ -270,9 +332,14 @@ const exported = {
     GET_SPOTIFY_SEARCH,
     GET_SPOTIFY_TOP_ARTISTS,
     GET_SPOTIFY_TOP_TRACKS,
+    GET_SPOTIFY_TOP_ALBUMS,
+    GET_SPOTIFY_TOP_GENRES,
     GET_SPOTIFY_TRACK_AUDIO_FEATURES,
     GET_USER,
-    GET_USER_STATS
-    
+    GET_USER_STATS,
+    SEARCH_USERS_BY_NAME,
+    GET_SUGGESTED_FRIENDS,
+    GET_FRIEND_REQUESTS,
+    GET_ONLINE_FRIENDS
 }
 export default exported;

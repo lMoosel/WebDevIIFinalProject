@@ -1,15 +1,11 @@
 import { Link } from "react-router-dom";
 import { useQuery } from '@apollo/client';
 import queries from '../graphQL/index.js';  
-import { useCookies } from 'react-cookie';
 
-export function GenreInfo(props) {
-    const [cookies] = useCookies(['user']);
-    const user = cookies.user;
-
+export function TopInfo({ userId }) {
     const { data: tracksData, loading: tracksLoading } = useQuery(queries.GET_SPOTIFY_TOP_TRACKS, {
         variables: {
-            id: user._id,
+            id: userId,
             timeRange: "short_term",
             offset: 0,
             limit: 5
@@ -18,7 +14,7 @@ export function GenreInfo(props) {
 
     const { data: artistsData, loading: artistsLoading } = useQuery(queries.GET_SPOTIFY_TOP_ARTISTS, {
         variables: {
-            id: user._id,
+            id: userId,
             timeRange: "short_term",
             offset: 0,
             limit: 5
@@ -27,7 +23,7 @@ export function GenreInfo(props) {
 
     const { data: genresData, loading: genresLoading } = useQuery(queries.GET_SPOTIFY_TOP_GENRES, {
         variables: {
-            id: user._id,
+            id: userId,
             timeRange: "short_term",
             limit: 5
         }
@@ -35,17 +31,14 @@ export function GenreInfo(props) {
 
     const { data: albumsData, loading: albumsLoading } = useQuery(queries.GET_SPOTIFY_TOP_ALBUMS, {
         variables: {
-            id: user._id,
+            id: userId,
             timeRange: "short_term",
             limit: 5
         }
     }); 
 
     return (
-        <div id="Genre-info-div">
-            {!props.hideInfo && <button className="info-button" onClick={() => {location.href="/topcategories"}}>i</button>}
-            <h1>Your Favorites</h1>
-
+        <div>
             <h3>Top Songs:</h3>
             {!tracksLoading && tracksData && tracksData.getSpotifyTopTracks.items.map((song) => (
                 <div key={song.id}>

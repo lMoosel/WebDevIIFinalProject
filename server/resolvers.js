@@ -5,6 +5,8 @@ import { ObjectId } from "mongodb";
 import axios from "axios";
 import { users as usersCollection } from "./config/mongoCollections.js";
 import bcrypt from "bcrypt";
+import { Graph } from "redis";
+import * as errors from "./config/GraphQLErrors.js";
 
 import {
   client,
@@ -38,15 +40,158 @@ import {
   handleResponse,
   getAxiosCall,
   get,
+  getRecentTracks,
+  getFavoriteGenres,
+  getFavoriteAlbums,
 } from "./data/spotify.js";
-import { Graph } from "redis";
 
 export const resolvers = {
   Query: {
+    getOnlineFriends: async (_, { _id }) => {
+      try {
+        const users = await usersCollection();
+        const user = await users.findOne({ _id: new ObjectId(_id) });
+        if (!user) {
+          throw new GraphQLError("Could not find user", errors.BAD_USER_DATA);
+        }
+        const friends = user.friends;
+        const onlineFriends = [];
+        for (const friendId of friends) {
+          try {
+            const playingStatus = await get(
+              friendId,
+              `getSpotifyCurrentlyPlaying:${friendId}`,
+              30,
+              "https://api.spotify.com/v1/me/player/currently-playing",
+            );
+            if (playingStatus && playingStatus.is_playing) {
+              const friendDetails = await users.findOne({
+                _id: new ObjectId(friendId),
+              });
+              onlineFriends.push({
+                _id: friendDetails._id.toString(),
+                username: friendDetails.username,
+                profile_picture: friendDetails.profile_picture,
+                track_name: playingStatus.item.name,
+                trackid: playingStatus.item.id,
+              });
+            }
+          } catch (error2) {
+            console.error(
+              `Error fetching Spotify currently playing for friend ${friendId}:`,
+              error2,
+            );
+          }
+        }
+        return onlineFriends;
+      } catch (error) {
+        throw new GraphQLError(error.message, error);
+      }
+    },
+    getSuggestedFriends: async (_, { _id }) => {
+      try {
+        const cache = await checkCache(`suggestedFriends:${_id}`);
+        if (cache) {
+          return cache;
+        }
+        isValidId(_id);
+        const users = await usersCollection();
+        const user = await users.findOne({ _id: new ObjectId(_id) });
+        if (!user) {
+          throw new GraphQLError("Could not find user", errors.BAD_USER_DATA);
+        }
+        const friends = user.friends.map((id) => new ObjectId(id));
+        const suggested = await users
+          .find({
+            _id: { $nin: friends, $ne: new ObjectId(_id) },
+            friendRequests: { $nin: [_id] },
+          })
+          .toArray();
+
+        const filteredSuggested = suggested.filter(
+          (suggestedUser) =>
+            !user.friendRequests.some(
+              (request) => request === suggestedUser._id.toString(),
+            ),
+        );
+
+        const result = filteredSuggested.map((user) => ({
+          _id: user._id.toString(),
+          username: user.username,
+          profile_picture: user.profile_picture,
+        }));
+
+        await addToCache(`suggestedFriends:${_id}`, result, 60 * 60);
+
+        return result;
+      } catch (error) {
+        throw new GraphQLError(error.message, error);
+      }
+    },
+    getFriendRequests: async (_, { _id }) => {
+      try {
+        const cache = await checkCache(`friendRequests:${_id}`);
+        if (cache) {
+          console.log("Grabbing from friend requests cache");
+          return cache;
+        }
+        isValidId(_id);
+        const users = await usersCollection();
+        const user = await users.findOne({ _id: new ObjectId(_id) });
+        if (!user) {
+          throw new GraphQLError("Could not find user", errors.BAD_USER_DATA);
+        }
+
+        const objectIds = user.friendRequests.map((id) => new ObjectId(id));
+
+        const requests = await users
+          .find({
+            _id: { $in: objectIds },
+          })
+          .toArray();
+
+        const result = requests.map((user) => ({
+          _id: user._id.toString(),
+          username: user.username,
+          profile_picture: user.profile_picture,
+        }));
+
+        await addToCache(`friendRequests:${_id}`, result, 60 * 60);
+
+        console.log("Does this run?");
+        return result;
+      } catch (error) {
+        throw new GraphQLError(error.message, error);
+      }
+    },
+    searchUsersByName: async (_, { query }) => {
+      try {
+        validateArgsString([query]);
+      } catch (e) {
+        throw new GraphQLError(e, errors.BAD_USER_DATA);
+      }
+      const users = await usersCollection();
+      const regex = new RegExp(query, "i");
+      let allUsers = await users
+        .find({ username: { $regex: regex } })
+        .toArray();
+      if (!allUsers) {
+        // Could not get list
+        throw new GraphQLError(
+          `Could not get list of all users`,
+          errors.INTERNAL_ERROR,
+        );
+      }
+      allUsers = allUsers.map((element) => {
+        element._id = element._id.toString();
+        return element;
+      });
+      return allUsers;
+    },
     getSpotifyAuthUrl: () => {
       const state = uuid();
       const scope =
-        "user-read-private user-read-email user-top-read user-read-currently-playing"; //This is important, change this if u want to use calls that need diff perms
+        "user-read-private user-read-email user-top-read user-read-currently-playing user-read-recently-played"; //This is important, change this if u want to use calls that need diff perms
       const clientId = process.env.SPOTIFY_CLIENT_ID;
       const redirectUri = process.env.REDIRECT_URI;
       const params = new URLSearchParams({
@@ -61,14 +206,14 @@ export const resolvers = {
     getUser: async (_, { _id }) => {
       try {
         const cache = await checkCache(`user:${_id}`);
-        if(cache){
+        if (cache) {
           return cache;
         }
         isValidId(_id);
         const users = await usersCollection();
         const user = await users.findOne({ _id: new ObjectId(_id) });
         if (!user) {
-          throw new GraphQLError("Could not find user");
+          throw new GraphQLError("Could not find user", errors.BAD_USER_DATA);
         }
         const ret = {
           _id: user._id.toString(),
@@ -77,11 +222,11 @@ export const resolvers = {
           email: user.email,
           friendRequests: user.friendRequests,
           friends: user.friends,
-        }
-        await addToCache(`user:${_id}`,ret,60*60)
+        };
+        await addToCache(`user:${_id}`, ret, 60 * 60);
         return ret;
       } catch (error) {
-        throw new GraphQLError(error);
+        throw new GraphQLError(error.message, error);
       }
     },
     getSpotifyProfile: async (_, { _id }) => {
@@ -94,7 +239,7 @@ export const resolvers = {
         );
         return response;
       } catch (error) {
-        throw new GraphQLError(error);
+        throw new GraphQLError(error.message, error);
       }
     },
     getSpotifyTopArtists: async (_, { _id, time_range, limit, offset }) => {
@@ -116,7 +261,7 @@ export const resolvers = {
         );
         return response;
       } catch (error) {
-        throw new GraphQLError(error);
+        throw new GraphQLError(error.message, error);
       }
     },
     getSpotifyTopTracks: async (_, { _id, time_range, limit, offset }) => {
@@ -138,7 +283,21 @@ export const resolvers = {
         );
         return response;
       } catch (error) {
-        throw new GraphQLError(error);
+        throw new GraphQLError(error.message, error);
+      }
+    },
+    getSpotifyTopAlbums: async (_, { _id, time_range, limit }) => {
+      try {
+        return await getFavoriteAlbums(_id, time_range, limit);
+      } catch (error) {
+        throw new GraphQLError(error.message, error);
+      }
+    },
+    getSpotifyTopGenres: async (_, { _id, time_range, limit }) => {
+      try {
+        return await getFavoriteGenres(_id, time_range, limit);
+      } catch (error) {
+        throw new GraphQLError(error.message, error);
       }
     },
     getSpotifyArtist: async (_, { _id, artistId }) => {
@@ -151,7 +310,7 @@ export const resolvers = {
         );
         return response;
       } catch (error) {
-        throw new GraphQLError(error);
+        throw new GraphQLError(error.message, error);
       }
     },
     getSpotifyTrack: async (_, { _id, trackId }) => {
@@ -164,7 +323,7 @@ export const resolvers = {
         );
         return response;
       } catch (error) {
-        throw new GraphQLError(error);
+        throw new GraphQLError(error.message, error);
       }
     },
     getSpotifyAlbum: async (_, { _id, albumId }) => {
@@ -177,7 +336,7 @@ export const resolvers = {
         );
         return response;
       } catch (error) {
-        throw new GraphQLError(error);
+        throw new GraphQLError(error.message, error);
       }
     },
     getSpotifySearch: async (_, { _id, query, type, limit, offset }) => {
@@ -201,7 +360,7 @@ export const resolvers = {
         );
         return response;
       } catch (error) {
-        throw new GraphQLError(error);
+        throw new GraphQLError(error.message, error);
       }
     },
     getSpotifyCurrentlyPlaying: async (_, { _id }) => {
@@ -209,13 +368,25 @@ export const resolvers = {
         const response = await get(
           _id,
           `getSpotifyCurrentlyPlaying:${_id}`,
-          30,
+          5,
           "https://api.spotify.com/v1/me/player/currently-playing",
         );
         return response;
       } catch (error) {
-        throw new GraphQLError(error);
+        throw new GraphQLError(error.message, error);
       }
+    },
+    getSpotifyRecentTracks: async (_, { _id, limit }) => {
+      isValidId(_id);
+
+      if (limit < 0 || limit > 100) {
+        throw new GraphQLError(
+          "limit needs to be between 0 and 100",
+          errors.BAD_USER_DATA,
+        );
+      }
+
+      return await getRecentTracks(_id, limit);
     },
     getSpotifyTrackAudioFeatures: async (_, { _id, trackId }) => {
       try {
@@ -227,7 +398,7 @@ export const resolvers = {
         );
         return response;
       } catch (error) {
-        throw new GraphQLError(error);
+        throw new GraphQLError(error.message, error);
       }
     },
     getUserStats: async (_, { _id }) => {
@@ -260,7 +431,7 @@ export const resolvers = {
         await addToCache(`getUserStats:${_id}`, avgs, 60 * 60 * 24);
         return avgs;
       } catch (error) {
-        throw new GraphQLError(error);
+        throw new GraphQLError(error.message, error);
       }
     },
   },
@@ -313,18 +484,21 @@ export const resolvers = {
             spotifyId: { $regex: new RegExp("^" + ret.data.id + "$", "i") },
           });
           if (user) {
-            throw new GraphQLError("Spotify account already in use.");
+            throw new GraphQLError(
+              "Spotify account already in use.",
+              errors.BAD_USER_DATA,
+            );
           }
           await addToCache(code, data, 60 * 15);
           return ret.data;
         } else {
           throw new GraphQLError(
-            "Request completed but status not OK:",
-            response.status,
+            `Request completed but status not OK: ${response.status}`,
+            errors.INTERNAL_ERROR,
           );
         }
       } catch (error) {
-        throw new GraphQLError(error);
+        throw new GraphQLError(error.message, error);
       }
     },
     validateUser: async (_, { email, password }) => {
@@ -335,13 +509,21 @@ export const resolvers = {
         email = email.trim();
         password = password.trim();
         const users = await usersCollection();
-        const user = await users.findOne({ email: email });
+        const user = await users.findOne({
+          email: { $regex: new RegExp("^" + email + "$", "i") },
+        });
         if (!user) {
-          throw new GraphQLError("Either password or email is invalid");
+          throw new GraphQLError(
+            "Either password or email is invalid",
+            errors.BAD_USER_DATA,
+          );
         }
         const compare = await bcrypt.compare(password, user.password);
         if (!compare) {
-          throw new GraphQLError("Either password or email is invalid");
+          throw new GraphQLError(
+            "Either password or email is invalid",
+            errors.BAD_USER_DATA,
+          );
         }
         const ret = {
           _id: user._id.toString(),
@@ -350,18 +532,21 @@ export const resolvers = {
           email: user.email,
           friendRequests: user.friendRequests,
           friends: user.friends,
-        }
-        await addToCache(`user:${user._id.toString()}`,ret,60*60)
+        };
+        await addToCache(`user:${user._id.toString()}`, ret, 60 * 60);
         return ret;
       } catch (error) {
-        throw new GraphQLError(error);
+        throw new GraphQLError(error.message, error);
       }
     },
     createUser: async (_, { password, code }) => {
       try {
         const response = await checkCache(code);
         if (!response) {
-          throw new GraphQLError("Code timed out, please reauthorize.");
+          throw new GraphQLError(
+            "Code timed out, please reauthorize.",
+            errors.NOT_AUTHORIZED,
+          );
         }
         validateArgsString([password]);
         validatePassword(password);
@@ -386,9 +571,9 @@ export const resolvers = {
           45 * 60,
         );
         const users = await usersCollection();
-        let insertedUser= await users.insertOne(newUser);
+        let insertedUser = await users.insertOne(newUser);
         if (!insertedUser.acknowledged) {
-          throw new GraphQLError(`Could not add user`, { extensions: { code: 'BAD_USER_INPUT' } });
+          throw new GraphQLError(`Could not add user`, errors.BAD_USER_DATA);
         }
         const ret = {
           _id: newUser._id.toString(),
@@ -397,11 +582,11 @@ export const resolvers = {
           email: newUser.email,
           friendRequests: newUser.friendRequests,
           friends: newUser.friends,
-        }
-        await addToCache(`user:${newUser._id.toString()}`,ret,60*60)
+        };
+        await addToCache(`user:${newUser._id.toString()}`, ret, 60 * 60);
         return ret;
       } catch (error) {
-        throw new GraphQLError(error);
+        throw new GraphQLError(error.message, error);
       }
     },
     editUser: async (_, { _id, newEmail, newPassword }) => {
@@ -420,7 +605,10 @@ export const resolvers = {
           });
 
           if (user && user._id.toString() !== _id) {
-            throw new GraphQLError("Email address already taken");
+            throw new GraphQLError(
+              "Email address already taken",
+              errors.BAD_USER_DATA,
+            );
           }
 
           changes["email"] = newEmail;
@@ -442,7 +630,7 @@ export const resolvers = {
         );
 
         if (!user) {
-          throw new GraphQLError("User does not exist");
+          throw new GraphQLError("User does not exist", errors.NOT_FOUND);
         }
 
         await removeFromCache(`user:${_id}`);
@@ -453,11 +641,11 @@ export const resolvers = {
           email: user.email,
           friendRequests: user.friendRequests,
           friends: user.friends,
-        }
-        await addToCache(`user:${_id}`,ret,60*60)
+        };
+        await addToCache(`user:${_id}`, ret, 60 * 60);
         return ret;
       } catch (error) {
-        throw new GraphQLError(error);
+        throw new GraphQLError(error.message, error);
       }
     },
     deleteUser: async (_, { _id }) => {
@@ -468,7 +656,7 @@ export const resolvers = {
         const user = await users.findOne({ _id: new ObjectId(_id) });
 
         if (!user) {
-          throw new GraphQLError("User does not exist");
+          throw new GraphQLError("User does not exist", errors.NOT_FOUND);
         }
 
         const userRemove = await users.findOneAndDelete(
@@ -477,7 +665,7 @@ export const resolvers = {
         );
 
         if (!userRemove) {
-          throw new GraphQLError("Could not remove");
+          throw new GraphQLError("Could not remove", errors.INTERNAL_ERROR);
         }
 
         // Update friends to get rid of user
@@ -490,6 +678,7 @@ export const resolvers = {
           if (!friend)
             throw new GraphQLError(
               "Could not update friend while deleting user",
+              errors.INTERNAL_ERROR,
             );
         });
 
@@ -504,10 +693,10 @@ export const resolvers = {
           email: user.email,
           friendRequests: user.friendRequests,
           friends: user.friends,
-        }
+        };
         return ret;
       } catch (error) {
-        throw new GraphQLError(error);
+        throw new GraphQLError(error.message, error);
       }
     },
     sendFriendRequest: async (_, { userId, friendId }) => {
@@ -525,16 +714,26 @@ export const resolvers = {
         _id: new ObjectId(friendId),
       });
 
-      if (!user) throw new GraphQLError("Cannot find user");
-      else if (!friend) throw new GraphQLError("Cannot find friend");
+      if (!user) throw new GraphQLError("Cannot find user", errors.NOT_FOUND);
+      else if (!friend)
+        throw new GraphQLError("Cannot find friend", errors.NOT_FOUND);
 
       // Edge Cases
       if (friend.friendRequests.includes(userId))
-        throw new GraphQLError("Already send a friend request");
+        throw new GraphQLError(
+          "Already send a friend request",
+          errors.BAD_USER_DATA,
+        );
       if (friend.friends.includes(userId))
-        throw new GraphQLError("Already friends with this person");
+        throw new GraphQLError(
+          "Already friends with this person",
+          errors.BAD_USER_DATA,
+        );
       if (user.friendRequests.includes(friendId))
-        throw new GraphQLError("You have a pending request from this person");
+        throw new GraphQLError(
+          "You have a pending request from this person",
+          errors.BAD_USER_DATA,
+        );
 
       // Add userId to friend's friendRequests
       const newFriend = users.findOneAndUpdate(
@@ -543,9 +742,15 @@ export const resolvers = {
       );
 
       if (!newFriend)
-        throw new GraphQLError("Something went wrong when updating friend");
+        throw new GraphQLError(
+          "Something went wrong when updating friend",
+          errors.INTERNAL_ERROR,
+        );
 
       await removeFromCache(`user:${friendId}`);
+      await removeFromCache(`friendRequests:${friendId}`);
+      await removeFromCache(`suggestedFriends:${userId}`);
+      await removeFromCache(`suggestedFriends:${friendId}`);
 
       return "Friend Request Sent";
     },
@@ -565,7 +770,7 @@ export const resolvers = {
           _id: new ObjectId(friendId),
         });
 
-        if (!user) throw new GraphQLError("Cannot find user");
+        if (!user) throw new GraphQLError("Cannot find user", errors.NOT_FOUND);
         else if (!friend) {
           // Remove friend from array bc most likely they have been deleted
           console.log("Friend not found, removing them from array");
@@ -573,9 +778,12 @@ export const resolvers = {
         }
 
         // Edge Cases
+        console.log("Testing this case");
+        console.log(user.friendRequests);
         if (!user.friendRequests.includes(friendId))
           throw new GraphQLError(
             "You don't have a pending request from this person",
+            errors.BAD_USER_DATA,
           );
 
         // Handle request based on action
@@ -596,10 +804,16 @@ export const resolvers = {
           );
 
           if (!updatedUser || !updatedFriend)
-            throw new GraphQLError("Something went wrong when updating user");
+            throw new GraphQLError(
+              "Something went wrong when updating user",
+              errors.INTERNAL_ERROR,
+            );
 
           await removeFromCache(`user:${userId}`);
+          await removeFromCache(`suggestedFriends:${userId}`);
+          await removeFromCache(`friendRequests:${userId}`);
           await removeFromCache(`user:${friendId}`);
+          await removeFromCache(`suggestedFriends:${friendId}`);
 
           return "Friend request accepted";
         } else if (action === "reject") {
@@ -611,14 +825,22 @@ export const resolvers = {
           );
 
           if (!updatedUser)
-            throw new GraphQLError("Something went wrong when updating user");
+            throw new GraphQLError(
+              "Something went wrong when updating user",
+              errors.INTERNAL_ERROR,
+            );
 
           await removeFromCache(`user:${userId}`);
+          await removeFromCache(`suggestedFriends:${userId}`);
+          await removeFromCache(`friendRequests:${userId}`);
+          await removeFromCache(`user:${friendId}`);
+          await removeFromCache(`suggestedFriends:${friendId}`);
 
           return "Friend request rejected";
-        } else throw new GraphQLError("Action not recognized");
+        } else
+          throw new GraphQLError("Action not recognized", errors.BAD_USER_DATA);
       } catch (error) {
-        throw new GraphQLError(error);
+        throw new GraphQLError(error.message, error);
       }
     },
     removeFriend: async (_, { userId, friendId }) => {
@@ -637,12 +859,13 @@ export const resolvers = {
           _id: new ObjectId(friendId),
         });
 
-        if (!user) throw new GraphQLError("Cannot find user");
-        else if (!friend) throw new GraphQLError("Cannot find friend");
+        if (!user) throw new GraphQLError("Cannot find user", errors.NOT_FOUND);
+        else if (!friend)
+          throw new GraphQLError("Cannot find friend", errors.NOT_FOUND);
 
         // Edge Cases
         if (!user.friends.includes(friendId))
-          throw new GraphQLError("You are not friends");
+          throw new GraphQLError("You are not friends", errors.BAD_USER_DATA);
 
         // Remove user and friend from each other's friends array
         const updatedUser = await users.findOneAndUpdate(
@@ -656,14 +879,19 @@ export const resolvers = {
         );
 
         if (!updatedUser || !updatedFriend)
-          throw new GraphQLError("Something went wrong when removing friend");
+          throw new GraphQLError(
+            "Something went wrong when removing friend",
+            errors.INTERNAL_ERROR,
+          );
 
         await removeFromCache(`user:${userId}`);
+        await removeFromCache(`suggestedFriends:${userId}`);
         await removeFromCache(`user:${friendId}`);
+        await removeFromCache(`suggestedFriends:${friendId}`);
 
         return "Removed friend";
       } catch (error) {
-        throw new GraphQLError(error);
+        throw new GraphQLError(error.message, error);
       }
     },
   },

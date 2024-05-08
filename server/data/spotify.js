@@ -7,9 +7,10 @@ import {
   addToCache,
   removeFromCache,
   clearUserCache,
-  push
+  push,
 } from "./cache.js";
 import { isValidId } from "../helpers.js";
+import * as errors from "../config/GraphQLErrors.js";
 import { ObjectId } from "mongodb";
 
 export const getAccessToken = async (_id) => {
@@ -61,7 +62,10 @@ export const handleResponse = async (response, key, _id, exp, hasParams) => {
   const cache = await checkCache(key);
   if (!response) {
     if (!cache) {
-      throw new GraphQLError("Server did not properly cache the first query.");
+      throw new GraphQLError(
+        "Server did not properly cache the first query.",
+        errors.INTERNAL_ERROR,
+      );
     }
     return cache.data;
   }
@@ -69,7 +73,6 @@ export const handleResponse = async (response, key, _id, exp, hasParams) => {
   if (!cache) {
     if (hasParams) {
       await push(`spotify:${_id}`, key);
-      
     }
     await addToCache(key, response, exp);
     return response.data;
@@ -125,7 +128,7 @@ export const getAxiosCall = async (url, access_token, etag, params) => {
       };
     } else {
       console.log(response);
-      throw new GraphQLError(response.data);
+      throw new GraphQLError(response.data, errors.INTERNAL_ERROR);
     }
   } catch (error) {
     throw new GraphQLError(error);
@@ -137,7 +140,7 @@ export const get = async (_id, key, exp, url, params = null) => {
   const cache = await checkCache(key);
   const access_token = await getAccessToken(_id);
   if (!access_token) {
-    throw new GraphQLError("Not authorized");
+    throw new GraphQLError("Not authorized", errors.NOT_AUTHORIZED);
   }
   let etag = null;
   if (cache) {
@@ -152,7 +155,7 @@ export const get = async (_id, key, exp, url, params = null) => {
   if (params) {
     hasParams = true;
   }
-  
+
   const handledResponse = await handleResponse(
     response,
     key,
@@ -163,34 +166,80 @@ export const get = async (_id, key, exp, url, params = null) => {
   return handledResponse;
 };
 
-export const getCurrentSong = () => {
-  //https://developer.spotify.com/documentation/web-api/reference/get-information-about-the-users-current-playback
-  return false;
+export const getFavoriteArtists = async (_id, time_range, limit = 10) => {
+  const url = "https://api.spotify.com/v1/me/top/artists";
+  const params = {
+    time_range,
+    limit,
+  };
+
+  const data = await get(
+    _id,
+    `getFavoriteArtists:${_id + limit}`,
+    60 * 60,
+    url,
+    params,
+  );
+
+  return data;
 };
 
-export const getFavoriteAlbums = () => {
-  //No Explicit API
-  return true;
+export const getFavoriteTracks = async (_id, time_range, limit = 10) => {
+  const url = "https://api.spotify.com/v1/me/top/tracks";
+  const params = {
+    time_range,
+    limit,
+  };
+
+  const data = await get(
+    _id,
+    `getFavoriteTracks:${_id + limit}`,
+    60 * 60,
+    url,
+    params,
+  );
+
+  return data;
 };
 
-export const getFavoriteGenres = () => {
-  //No Explicit API
-  return null;
+export const getFavoriteAlbums = async (_id, time_range, limit = 10) => {
+  // Use top 50 tracks to decide favorite
+  const data = await getFavoriteTracks(_id, time_range, 50);
+  let albums = data.items.map((song) => song.album);
+
+  let counts = {};
+  for (const album of albums) {
+    counts[album.name] = counts[album.name] ? counts[album.name] + 1 : 1;
+  }
+
+  // Sort descending
+  let top = albums.sort((a, b) => counts[b.name] - counts[a.name]);
+  top = top.filter(
+    (v, i, a) =>
+      counts[v.name] > 1 && a.findIndex((v2) => v2.name === v.name) === i,
+  );
+
+  return top.slice(0, limit);
 };
 
-export const getFavoriteArtists = () => {
-  //https://developer.spotify.com/documentation/web-api/reference/get-users-top-artists-and-tracks
-  return null;
-};
+export const getFavoriteGenres = async (_id, time_range, limit = 10) => {
+  // Use 50 tracks to decide favorite
+  const data = await getFavoriteArtists(_id, time_range, 50);
 
-export const getFavoriteSongs = () => {
-  //https://developer.spotify.com/documentation/web-api/reference/get-users-top-artists-and-tracks
-  return null;
-};
+  // Can only get genre from artist
+  const genres = data.items.map((artist) => artist.genres).flat();
 
-export const getAverageListeningSession = () => {
-  //Not sure if this one is possible
-  return null;
+  const counts = {};
+  // Counts frequenct of genre
+  for (const genre of genres) {
+    counts[genre] = counts[genre] ? counts[genre] + 1 : 1;
+  }
+
+  // Sort descending
+  let top = Object.keys(counts).sort((a, b) => counts[b] - counts[a]);
+  top = top.filter((genre) => counts[genre] >= 1);
+
+  return top.slice(0, limit);
 };
 
 export const getRecentTracks = async (_id, limit = 20) => {
@@ -199,7 +248,13 @@ export const getRecentTracks = async (_id, limit = 20) => {
     limit,
   };
 
-  const data = await get(_id, `getRecentTracks:${_id}`, 2 * 60, url, params);
+  const data = await get(
+    _id,
+    `getRecentTracks:${_id + limit}`,
+    2 * 60,
+    url,
+    params,
+  );
 
-  const recentTracks = data.items;
+  return data;
 };

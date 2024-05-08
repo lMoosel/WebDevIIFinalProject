@@ -1,5 +1,6 @@
 import { GraphQLError } from "graphql";
 import { ObjectId } from "mongodb";
+import * as errors from "./config/GraphQLErrors.js";
 
 let charIsLowercase = function (c) {
   return c >= "a" && c <= "z";
@@ -10,17 +11,13 @@ let charIsNumber = function (c) {
 const validateDate = (date, cmpDate = null) => {
   const formats = ["MM/DD/YYYY", "MM/D/YYYY", "M/DD/YYYY", "M/D/YYYY"];
   if (!moment(date, formats, true).isValid()) {
-    throw new GraphQLError(`Invalid date`, {
-      extensions: { code: "BAD_REQUEST" },
-    });
+    throw new GraphQLError(`Invalid date`, errors.BAD_USER_DATA);
   }
 
   if (!cmpDate) cmpDate = "01/01/1900";
 
   if (moment(date).isBefore(cmpDate) || moment(date).isAfter("12/31/2024")) {
-    throw new GraphQLError(`Invalid date`, {
-      extensions: { code: "BAD_REQUEST" },
-    });
+    throw new GraphQLError(`Invalid date`, errors.BAD_USER_DATA);
   }
 };
 let isValidEmail = function (email) {
@@ -69,8 +66,11 @@ let isValidEmail = function (email) {
   //Regex used from https://emailregex.com/
   let emailRegex =
     /^(?:[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*|"(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21\x23-\x5b\x5d-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])*")@(?:(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?|\[(?:(?:(2(5[0-5]|[0-4][0-9])|1[0-9][0-9]|[1-9]?[0-9]))\.){3}(?:(2(5[0-5]|[0-4][0-9])|1[0-9][0-9]|[1-9]?[0-9])|[a-z0-9-]*[a-z0-9]:(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21-\x5a\x53-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])+)\])$/;
-  if (!emailRegex.test(email))
-    throw new GraphQLError("Email is in an incorrect format");
+  if (!emailRegex.test(email.toLowerCase()))
+    throw new GraphQLError(
+      "Email is in an incorrect format",
+      errors.BAD_USER_DATA,
+    );
 };
 const validateArgsString = (args) => {
   // Check for empty strings
@@ -80,9 +80,7 @@ const validateArgsString = (args) => {
       args[key] = args[key].trim();
 
       if (args[key].length < 1) {
-        throw new GraphQLError(`Empty field`, {
-          extensions: { code: "BAD_REQUEST" },
-        });
+        throw new GraphQLError(`Empty field`, errors.BAD_USER_DATA);
       }
     } else if (Array.isArray(args[key])) {
       for (let item of args[key]) {
@@ -90,9 +88,7 @@ const validateArgsString = (args) => {
           item = item.trim();
 
           if (item.length < 1) {
-            throw new GraphQLError(`Empty field`, {
-              extensions: { code: "BAD_REQUEST" },
-            });
+            throw new GraphQLError(`Empty field`, errors.BAD_USER_DATA);
           }
         }
       }
@@ -101,44 +97,61 @@ const validateArgsString = (args) => {
 };
 function validatePassword(password) {
   if (password.length < 8) {
-    throw new GraphQLError("Password must be at least 8 characters long.");
+    throw new GraphQLError(
+      "Password must be at least 8 characters long.",
+      errors.BAD_USER_DATA,
+    );
   }
   if (!/[A-Z]/.test(password)) {
     throw new GraphQLError(
       "Password must contain at least one uppercase letter.",
+      errors.BAD_USER_DATA,
     );
   }
   if (!/[0-9]/.test(password)) {
-    throw new GraphQLError("Password must contain at least one number.");
+    throw new GraphQLError(
+      "Password must contain at least one number.",
+      errors.BAD_USER_DATA,
+    );
   }
   if (!/[!@#$%^&*(),.?":{}|<>]/.test(password)) {
     throw new GraphQLError(
       "Password must contain at least one special character.",
+      errors.BAD_USER_DATA,
     );
   }
 }
 function isValidId(id) {
-  if (!id) throw new GraphQLError("No id given");
-  if (typeof id !== "string") throw new GraphQLError("Id is not a string");
-  if (!ObjectId.isValid(id.trim())) throw new GraphQLError("Id is not valid");
+  if (!id) throw new GraphQLError("No id given", errors.BAD_USER_DATA);
+  if (typeof id !== "string")
+    throw new GraphQLError("Id is not a string", errors.BAD_USER_DATA);
+  if (!ObjectId.isValid(id.trim()))
+    throw new GraphQLError("Id is not valid", errors.BAD_USER_DATA);
 }
 function verifyTimeRange(time_range) {
   const validRanges = ["short_term", "medium_term", "long_term"];
   if (!validRanges.includes(time_range)) {
     throw new Error(
       `Expected one of ${validRanges.join(", ")}, but got ${time_range}.`,
+      errors.BAD_USER_DATA,
     );
   }
 }
 function verifyOffset(offset) {
   if (typeof offset !== "number" || offset < 0) {
-    throw new Error(`The offset must be a non-negative integer.`);
+    throw new Error(
+      `The offset must be a non-negative integer.`,
+      errors.BAD_USER_DATA,
+    );
   }
 }
 function verifyLimit(limit) {
   const maxLimit = 50;
   if (typeof limit !== "number" || limit < 1 || limit > maxLimit) {
-    throw new Error(`The limit must be a number between 1 and ${maxLimit}.`);
+    throw new Error(
+      `The limit must be a number between 1 and ${maxLimit}.`,
+      errors.BAD_USER_DATA,
+    );
   }
 }
 function verifyType(types) {
@@ -150,6 +163,7 @@ function verifyType(types) {
   ) {
     throw new GraphQLError(
       'Most only be an array of "album", "track", "artist".',
+      errors.BAD_USER_DATA,
     );
   }
 }
