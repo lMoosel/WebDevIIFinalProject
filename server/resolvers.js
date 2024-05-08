@@ -743,6 +743,7 @@ export const resolvers = {
           );
         
           await removeFromCache(`friendRequests:${user._id.toString()}`);
+          await removeFromCache(`user:${user._id.toString()}`);
         
           if (!potentialFriend)
             throw new GraphQLError(
