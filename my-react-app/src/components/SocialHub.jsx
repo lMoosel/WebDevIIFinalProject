@@ -194,7 +194,7 @@ function OfflineFriend(props) {
 function SuggestedFriend(props) {
     return (
         <div className="suggested-friend friend-request"> 
-            <span><a><Link to={`/user/${props._id}`}>{props.name}</Link></a></span>
+            <span><Link to={`/user/${props._id}`}>{props.name}</Link></span>
             <span className="request-span"><button onClick={() => props.sendFriendRequest(props._id)}>Send Request</button></span>
         </div>
 

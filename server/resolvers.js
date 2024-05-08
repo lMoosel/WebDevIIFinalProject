@@ -200,7 +200,8 @@ export const resolvers = {
     },
     searchUsersByName: async (_, { query }) => {
       try {
-        validateArgsString([query]);
+        // Commented out to allow search with empty string
+        //validateArgsString([query]);
       } catch (e) {
         throw new GraphQLError(e, errors.BAD_USER_DATA);
       }
@@ -401,7 +402,8 @@ export const resolvers = {
     },
     getSpotifySearch: async (_, { _id, query, type, limit, offset }) => {
       try {
-        validateArgsString([query]);
+        // Commented out to allow for empty string
+        //validateArgsString([query]);
         verifyLimit(limit);
         verifyOffset(offset);
         verifyType(type);

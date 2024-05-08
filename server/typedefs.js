@@ -16,7 +16,7 @@ type Query {
     getSpotifyArtistRelatedArtists(_id: String!, artistId: String!): [Artist]
     getSpotifyTrack(_id: String!, trackId: String!): Track
     getSpotifyAlbum(_id: String!, albumId: String!): Album
-    getSpotifySearch(_id: String!, query: String!, type: [String!], limit: Int!, offset: Int!): SearchResponse
+    getSpotifySearch(_id: String!, query: String!, type: [String!]!, limit: Int!, offset: Int!): SearchResponse
     searchUsersByName(query: String!): [User]
     getSpotifyCurrentlyPlaying(_id: String!): CurrentlyPlayingResponse
     getSpotifyRecentTracks(_id: String!, limit: Int!): RecentTracksResponse
