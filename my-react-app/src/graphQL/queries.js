@@ -350,6 +350,7 @@ const GET_ONLINE_FRIENDS = gql`
         name
       }
       artists {
+        id
         name
       }
       id
