@@ -113,33 +113,61 @@ export const resolvers = {
         // Retrieve the friends' documents from the database
         const friendDocs = await users.find({ _id: { $in: friends } }).toArray();
         
-        // Retrieve the friends' friends arrays
-        const friendsFriends = [];
-        for (const friend of friendDocs) {
-            for (let i = 0; i < friend.friends.length; i++) {
-              const prospectiveFriend = await users.findOne({ _id: new ObjectId(friend.friends[i])});
-              if (prospectiveFriend) {
-                  friendsFriends.push(new ObjectId(friend.friends[i]));
-              }
+        if (friendDocs.length !== 0) {
+          // Retrieve the friends' friends arrays
+          const friendsFriends = [];
+          for (const friend of friendDocs) {
+              for (let i = 0; i < friend.friends.length; i++) {
+                const prospectiveFriend = await users.findOne({ _id: new ObjectId(friend.friends[i])});
+                if (prospectiveFriend) {
+                    friendsFriends.push(new ObjectId(friend.friends[i]));
+                }
+            }
           }
+          
+          const suggested = await users.find({
+            _id: { $in: friendsFriends, $ne: new ObjectId(_id) },
+            friendRequests: { $nin: [_id] }
+          }).toArray();
+    
+          const filteredSuggested = suggested.filter(suggestedUser => !user.friendRequests.some
+            (request => request === suggestedUser._id.toString()));
+
+          const result = filteredSuggested.map((user) => ({
+            _id: user._id.toString(),
+            username: user.username,
+            profile_picture: user.profile_picture,
+          }));
+
+          await addToCache(`suggestedFriends:${_id}`, result, 60 * 60);
+
+          return result;
+        // No friends (suggest everyone)
+        } else {
+          const suggested = await users
+            .find({
+              _id: { $ne: new ObjectId(_id) },
+              friendRequests: { $nin: [_id] },
+            })
+            .toArray();
+
+          const filteredSuggested = suggested.filter(
+            (suggestedUser) =>
+              !user.friendRequests.some(
+                (request) => request === suggestedUser._id.toString(),
+              ),
+          );
+
+          const result = filteredSuggested.map((user) => ({
+            _id: user._id.toString(),
+            username: user.username,
+            profile_picture: user.profile_picture,
+          }));
+
+          await addToCache(`suggestedFriends:${_id}`, result, 60 * 60);
+
+          return result;
         }
-        
-        const suggested = await users.find({
-          _id: { $in: friendsFriends, $ne: new ObjectId(_id) },
-          friendRequests: { $nin: [_id] }
-        }).toArray();
-  
-        const filteredSuggested = suggested.filter(suggestedUser => !user.friendRequests.some(request => request === suggestedUser._id.toString()));
-
-        const result = filteredSuggested.map((user) => ({
-          _id: user._id.toString(),
-          username: user.username,
-          profile_picture: user.profile_picture,
-        }));
-
-        await addToCache(`suggestedFriends:${_id}`, result, 60 * 60);
-
-        return result;
       } catch (error) {
         throw new GraphQLError(error.message, error);
       }
