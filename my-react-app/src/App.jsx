@@ -53,9 +53,9 @@ function App() {
         ) : (
           <>
           {location.pathname !== '/' && (
-            <div>
-              <Link to={`/`}>Home</Link>
-            </div>
+            <span id="Home-Login-button">
+              <button><Link to={`/`}>Home</Link></button>
+            </span>
           )}
           <Routes>
             <Route path="/login" element={<Login />} />

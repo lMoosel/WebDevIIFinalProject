@@ -78,9 +78,6 @@ export function SocialHub(props) {
         return <p>Loading...</p>;
     }
     if (friendRequestsError || onlineFriendsError || suggestedFriendsError) {
-        console.log(friendRequestsError)
-        console.log(onlineFriendsData)
-        console.log(suggestedFriendsError)
         return <p>Error: Please try again</p>;
     }
 
@@ -108,7 +105,7 @@ export function SocialHub(props) {
 
             {props.hideInfo && <>
                 <h3>Offline Friends:</h3>
-    `            {
+               {
                     onlineFriendsData?.getOnlineFriends.offline.map((friend, index) => (
                         <OfflineFriend 
                             key={index}
