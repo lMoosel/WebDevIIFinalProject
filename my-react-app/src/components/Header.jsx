@@ -24,7 +24,7 @@ export function Header({ logout }) {
                         <button onClick={logout}>Logout</button>
                     </span>
                     <span id="Home-button">
-                        <Link to={`/`}>Home</Link>
+                        <button><Link to={`/`}>Home</Link></button>
                     </span>
                 </div>
             }
