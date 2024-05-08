@@ -18,7 +18,7 @@ export function Header({ logout }) {
                         <div id="pfp-div"><img src="https://upload.wikimedia.org/wikipedia/commons/thumb/b/b5/Windows_10_Default_Profile_Picture.svg/2048px-Windows_10_Default_Profile_Picture.svg.png"></img></div>
                     }
                     { user.username && 
-                        <a id="username-header">{user.username}</a>
+                        <a id="username-header"><Link to={`/user/${user._id}`}>{user.username}</Link></a>
                     }
                     <span id="Login-Logout-button">
                         <button onClick={logout}>Logout</button>
