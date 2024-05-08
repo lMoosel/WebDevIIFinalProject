@@ -265,8 +265,15 @@ img {
 
   overflow: hidden;
 
-  width: 3%;
-  height: 112%;
+  width: 4%;
+  height: 100%;
+}
+
+#pfp-div img {
+  width: 100%;
+  height: auto;
+  display: block;
+  margin: 0 auto;
 }
 
 #username-header{
