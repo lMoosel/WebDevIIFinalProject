@@ -60,7 +60,7 @@ function EditUser (props) {
 
     return (
         <div>
-            <h5>Edit User</h5>
+            <h1>Edit User</h1>
             <form className="form" id="editUserForm" onSubmit={onSubmitEditArtist}>
                 <div className='form-group'>
                     <label>

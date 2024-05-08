@@ -236,14 +236,13 @@ export function User(props) {
                         height="400"
                     />
                 )}
-                {!compare && 
-                    <>
-                        <EditUser user={user}/>
-                        <DeleteUser user={user} logoutFunc={props.logoutFunc}/>
-                        <br/><br/><br/>
-                    </>
-                }
             </div>
+            {!compare && 
+                <div className="friend-info">
+                    <EditUser user={user}/>
+                    <DeleteUser user={user} logoutFunc={props.logoutFunc}/>
+                </div>
+            }
             {compare && (
                 <div className="friend-info">
                     <h1>Other User Information</h1>

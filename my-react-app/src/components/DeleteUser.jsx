@@ -23,7 +23,7 @@ function DeleteUser (props) {
 
     return (
         <div>
-            <h5>Delete User</h5>
+            <h1>Delete User</h1>
             <form className="form" id="deleteUserForm" onSubmit={onSubmitDeleteArtist}>
                 <button className='button add-button' type='submit'>Delete</button>
             </form>
