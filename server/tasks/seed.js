@@ -68,7 +68,7 @@ const main = async () => {
             _id: userIds.tacoboy76,
             email: "ggt24265@vogco.com",
             password: "$2b$16$tAGPXPM0fOFInG9amX16QOw2alKxAHd8F7p7NuGyX1pxuSezFH6Ou",
-            refresh_token: "AQCjJTu004HC1jsewjVOff4t4tBec1xGgB6K8D46p2ViGveJtRWcCPqq9p9aUBruJuhDCcO16XKlkIsmbeYxDx_I6so83ggLXaJm5b1w3OSVWsMP_AQ5k5a3aF28MFWeL10PY",
+            refresh_token: "AQATc3WLsKx1vDPRQXwHbSeAoPdHWSZm1GINI9k4rlNbJgi8os-ohabt_n5qiOzDvs3nZ-sKm4mSiS-aI03A-YkuP8b3UWDoWYXITbATGCtoYJcUoLv312QoXhNAilsDvEU",
             profile_picture: [],
             username: "Tacoboy76",
             spotifyId: "31gas7wqqbyj7xk3mk4vbv63zdtu",
