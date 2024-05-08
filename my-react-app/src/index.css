@@ -1,5 +1,5 @@
 * {
-  color: #1DB954;
+  color: #1db954;
   background-color: #191414;
 }
 
@@ -13,7 +13,7 @@
 
   border-width: 1px;
   border-style: solid;
-  border-color: #1DB954;
+  border-color: #1db954;
 
   position: relative;
 }
@@ -28,11 +28,10 @@
 
   border-width: 1px;
   border-style: solid;
-  border-color: #1DB954;
+  border-color: #1db954;
 
   position: relative;
 }
-
 
 #home-screen-button {
   position: absolute;
@@ -41,8 +40,9 @@
   transform: translateY(-50%) translateX(-50%);
 
   color: #000000;
-  background-color:#1DB954;
-  font-weight: bold; font-size: 3vh;
+  background-color: #1db954;
+  font-weight: bold;
+  font-size: 3vh;
 
   width: 20vw;
   height: 7vh;
@@ -55,39 +55,35 @@
 #Genre-info-div {
   border-width: 1px;
   border-style: solid;
-  border-color: #1DB954;
-  
+  border-color: #1db954;
+
   overflow: auto;
 
   width: 100%;
   height: 100%;
-
 }
 
 #Chart-div {
   border-width: 1px;
   border-style: solid;
-  border-color: #1DB954;
+  border-color: #1db954;
 
   overflow: hidden;
 
   width: 100%;
   height: 100%;
-
 }
 
 #Social-hub-div {
   border-width: 1px;
   border-style: solid;
-  border-color: #1DB954;
+  border-color: #1db954;
 
   overflow: auto;
 
   width: 100%;
   height: 100%;
 }
-
-
 
 #Stat-screen-main-div {
   align-self: center;
@@ -96,14 +92,13 @@
   align-items: center;
 
   white-space: nowrap;
-  
-  padding: .5%;
+
+  padding: 0.5%;
 }
 
 #Current-song-div {
-
   position: fixed;
-  
+
   bottom: 1vh;
   left: 1vw;
   right: 1vw;
@@ -114,18 +109,17 @@
 
   border-width: 1px;
   border-style: solid;
-  border-color: #1DB954;
+  border-color: #1db954;
 }
 
 .top-info-div {
   display: flex;
 
-  border-color: #1DB954;
+  border-color: #1db954;
   border-style: solid;
   border-width: 1px;
   width: 90%;
-  
- 
+
   justify-content: center;
 
   padding: 2%;
@@ -135,12 +129,11 @@
 .friend-request {
   display: flex;
 
-  border-color: #1DB954;
+  border-color: #1db954;
   border-style: solid;
   border-width: 1px;
   width: 90%;
-  
- 
+
   justify-content: center;
 
   padding: 2%;
@@ -149,9 +142,9 @@
 
 #accept-request {
   display: inline-block;
-  background-color: #1DB965;
+  background-color: #1db965;
   color: #000000;
-  
+
   position: relative;
 
   width: 80%;
@@ -168,7 +161,7 @@
   color: #000000;
 
   position: relative;
-  
+
   width: 80%;
 
   padding: auto;
@@ -183,7 +176,7 @@
 
   overflow: hidden;
   text-overflow: ellipsis;
-  
+
   text-align: center;
 
   display: inline-block;
@@ -199,10 +192,9 @@
   margin: 1%;
 
   border-radius: 90px;
-  border-color: #1DB954;
+  border-color: #1db954;
 
   position: absolute;
-
 }
 
 #Login-Logout-button {
@@ -224,7 +216,6 @@
 }
 
 #header {
-
   position: fixed;
 
   align-content: center;
@@ -238,7 +229,7 @@
   height: 5vh;
 
   border-style: solid;
-  border-color: #1DB954;
+  border-color: #1db954;
 }
 
 #current-song {
@@ -251,20 +242,18 @@
   height: 100%;
 
   text-align: center;
-  
 }
 
 img {
   display: block;
-  
+
   margin: auto;
-  
+
   width: 100%;
   height: 100%;
 }
 
 #pfp-div {
-
   position: absolute;
   padding: auto;
 
@@ -283,15 +272,28 @@ img {
   margin: 0 auto;
 }
 
-#username-header{
-  font-size: 250%
+#username-header {
+  font-size: 250%;
 }
 
 .user-container {
   display: flex;
 }
 
-.user-info, .friend-info {
+.user-info,
+.friend-info {
   flex: 1;
-  margin-right: 20px; 
+  margin-right: 20px;
+}
+
+#center-view {
+  display: flex;
+  flex-direction: column;
+}
+
+#search-area {
+  position: absolute;
+  width: 100%; /* Adjust width as needed */
+  max-height: 100%; /* Adjust max-height as needed */
+  overflow-y: auto; /* Enable vertical scrolling */
 }
