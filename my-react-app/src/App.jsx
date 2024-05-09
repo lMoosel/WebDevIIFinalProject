@@ -38,7 +38,7 @@ function App() {
     <CookiesProvider>
         {isLoggedIn ? (
           <>
-            <Header logout={handleLogout} /> <br/> <br/> <br/>
+            <Header logout={handleLogout} /> <br/> <br/> <br/> <br/> <br/>
             <Routes>
               <Route path="/" element={<StatsScreen/>} />
               <Route path="/socialhub" element={<SocialHub hideInfo={true}/>}/>

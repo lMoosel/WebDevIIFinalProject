@@ -75,7 +75,7 @@ function Callback() {
       <div>
         <h1>Authorization Successful</h1>
         {images.length > 0 && (
-          <div id="pfp-div">
+          <div id="pfp-div-but-relative">
             <img
               src={images[0].url}
               alt="Profile"

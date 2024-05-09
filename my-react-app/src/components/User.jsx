@@ -15,7 +15,7 @@ export function User(props) {
     let compare = false;
     let isFriend = false;
     let friendRequest = false;
-
+    let acceptRequest = false;
     // I Should use useLazyQuery but I could not get everything working together
     const { data: userData, loading: userLoading, error: userError } = useQuery(queries.GET_USER, {
         variables: {
@@ -48,7 +48,6 @@ export function User(props) {
     });
 
     const [sendFriendRequestMutation] = useMutation(queries.SEND_FRIEND_REQUEST);
-
     const sendFriendRequest = async (friendid) => {
         try {
             await sendFriendRequestMutation({
@@ -63,7 +62,7 @@ export function User(props) {
             console.error('Error sending friend request:', error);
         }
     };
-
+    
     if (userLoading || friendLoading || userStatsLoading || friendStatsLoading || onlineFriendsLoading) return <p>Loading...</p>;
     if (userError || friendError || userStatsError || friendStatsError || onlineFriendsError) return <p>404 Error : Please try again</p>;
 
@@ -90,6 +89,9 @@ export function User(props) {
         friendRequest = true;
     }
 
+    if (user.friendRequests.some(id => id === friendInfo._id)) {
+        acceptRequest = true;
+    }
     let userChartData = {
         options: {
             chart: {
@@ -264,7 +266,7 @@ export function User(props) {
                     )}
                     {!isFriend && <>
                         <h1>You have to be friends to view their chart!</h1>
-                        {!friendRequest && <>
+                        {!friendRequest && !acceptRequest && <>
                             <FriendRequest 
                                 name={friendInfo.username}
                                 _id={friendInfo._id}

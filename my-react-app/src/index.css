@@ -266,6 +266,29 @@ img {
   height: 100%;
 }
 
+#pfp-div-but-relative {
+  position: relative;
+  padding: auto;
+
+  left: 0;
+
+  overflow: hidden;
+
+  width: 4%;
+  height: 150%;
+}
+
+#pfp-div {
+  position: absolute;
+
+  left: 0;
+
+  overflow: hidden;
+
+  width: 4%;
+  height: 150%;
+}
+
 #pfp-div {
   position: absolute;
 
@@ -312,5 +335,10 @@ img {
 
 #therealcenterspan {
   vertical-align: top;
+}
+
+#header-buttons {
+  width: 33%;
+  height: 100%;
 }
 

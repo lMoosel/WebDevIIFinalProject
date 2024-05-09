@@ -96,11 +96,11 @@ export function ChartComponent (props) {
     }
 
     return (
-        <div id="Chart-div">
+        <span id="Chart-div">
             {!props.hideInfo && <button className="info-button" onClick={() => {location.href=`/track/${query1Results.data.getSpotifyCurrentlyPlaying.item.id}`}}>i</button>}
             <h1>CHART</h1>
 
-            <div style={{ display: 'flex', justifyContent: 'center' }}>
+            <span style={{ display: 'flex', justifyContent: 'center' }}>
                 {query1Results.data && query2Results && chartData && (
                     <Chart
                         options={chartData.options}
@@ -112,7 +112,7 @@ export function ChartComponent (props) {
                 { !chartData && <>
                     <p>No track currently playing!</p>
                 </>}
-            </div>
-        </div>
+            </span>
+        </span>
     );
 }
