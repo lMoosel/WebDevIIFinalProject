@@ -84,7 +84,7 @@ export function SocialHub(props) {
     console.log(onlineFriendsData)
 
     return (
-        <div id="Social-hub-div">
+        <span id="Social-hub-div">
             {!props.hideInfo && <button className="info-button" onClick={() => {location.href="/socialhub"}}>i</button>}
             <h1>SOCIAL HUB</h1>
 
@@ -144,17 +144,18 @@ export function SocialHub(props) {
             <br />
             <br />
             <br />
-        </div>
+        </span>
     )
 }
 
 function FriendRequest(props) {
     return (
-    <div className="friend-request">
+    <span className="friend-request">
         <span className="request-span"><a><Link to={`/user/${props._id}`}>{props.name}</Link></a></span>
         <span className="request-span"><button id="accept-request" onClick={() => props.handleFriendRequest(props._id, "accept")}>Accept</button></span>
         <span className="request-span"><button id="decline-request" onClick={() => props.handleFriendRequest(props._id, "reject")}>Reject</button></span>
-    </div>
+        <br/>
+    </span>
     )
 }
 
@@ -166,13 +167,14 @@ function OnlineFriend(props) {
     };
 
     return (
-        <div className="online-friend friend-request">
+        <span className="online-friend friend-request">
             <span className="request-span"><a><Link to={`/user/${props._id}`}>{props.name}</Link> {` is listening to `} <Link to={`/track/${props.songId}`}>{props.currentSong}</Link></a></span>
             {props.hideInfo &&             
                 <span className="request-span">
                     <button id="decline-request" onClick={confirmRemoveFriend}>Remove</button>
                 </span>}
-        </div>
+            <br/>
+        </span>
     )
 }
 
@@ -184,22 +186,23 @@ function OfflineFriend(props) {
     };
 
     return (
-        <div className="online-friend friend-request">
+        <span className="online-friend friend-request">
             <span className="request-span"><a><Link to={`/user/${props._id}`}>{props.name}</Link></a></span>
             {props.hideInfo &&             
                 <span className="request-span">
                     <button id="decline-request" onClick={confirmRemoveFriend}>Remove</button>
                 </span>}
-        </div>
+            <br/>
+        </span>
     )
 }
 
 function SuggestedFriend(props) {
     return (
-        <div className="suggested-friend friend-request"> 
+        <span className="suggested-friend friend-request"> 
             <span><Link to={`/user/${props._id}`}>{props.name}</Link></span>
             <span className="request-span"><button onClick={() => props.sendFriendRequest(props._id)}>Send Request</button></span>
-        </div>
-
+            <br/>
+        </span>
     )
 }
