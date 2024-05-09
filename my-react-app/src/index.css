@@ -3,7 +3,7 @@
   background-color: #191414;
 }
 
-.side-span {
+.side-div {
   white-space: nowrap;
   display: inline-flex;
 
@@ -18,7 +18,7 @@
   position: relative;
 }
 
-.center-span {
+.center-div {
   white-space: nowrap;
   display: inline-flex;
 
@@ -168,7 +168,7 @@
   border-radius: 5px;
 }
 
-.request-span {
+.request-div {
   width: 33%;
   height: auto;
 
@@ -332,7 +332,7 @@ img {
   overflow-y: auto; /* Enable vertical scrolling */
 }
 
-#therealcenterspan {
+#therealcenterdiv {
   vertical-align: top;
 }
 

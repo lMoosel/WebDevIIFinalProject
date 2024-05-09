@@ -1,210 +1,273 @@
-import { CookiesProvider, useCookies } from 'react-cookie';
-import { useQuery, useMutation } from '@apollo/client';
-import queries from '../graphQL/index.js';
-import { Link } from 'react-router-dom';
+import { CookiesProvider, useCookies } from "react-cookie";
+import { useQuery, useMutation } from "@apollo/client";
+import queries from "../graphQL/index.js";
+import { Link } from "react-router-dom";
 
 export function SocialHub(props) {
-    const [cookies, setCookie] = useCookies(['user']);
-    const userid = cookies.user._id;
+  const [cookies, setCookie] = useCookies(["user"]);
+  const userid = cookies.user._id;
 
-    const { data: friendRequestsData, loading: friendRequestsLoading, error: friendRequestsError, refetch: refreshFriendRequestsData } = useQuery(queries.GET_FRIEND_REQUESTS, {
-        variables: { id: userid }
-    });
+  const {
+    data: friendRequestsData,
+    loading: friendRequestsLoading,
+    error: friendRequestsError,
+    refetch: refreshFriendRequestsData,
+  } = useQuery(queries.GET_FRIEND_REQUESTS, {
+    variables: { id: userid },
+  });
 
-    const { data: onlineFriendsData, loading: onlineFriendsLoading, error: onlineFriendsError, refetch: refreshOnlineFriends} = useQuery(queries.GET_ONLINE_FRIENDS, {
-        variables: { id: userid },
-        pollInterval: 30000
-    });
+  const {
+    data: onlineFriendsData,
+    loading: onlineFriendsLoading,
+    error: onlineFriendsError,
+    refetch: refreshOnlineFriends,
+  } = useQuery(queries.GET_ONLINE_FRIENDS, {
+    variables: { id: userid },
+    pollInterval: 30000,
+  });
 
-    const { data: suggestedFriendsData, loading: suggestedFriendsLoading, error: suggestedFriendsError, refetch: refreshSuggestedFriends } = useQuery(queries.GET_SUGGESTED_FRIENDS, {
-        variables: { id: userid }
-    });
+  const {
+    data: suggestedFriendsData,
+    loading: suggestedFriendsLoading,
+    error: suggestedFriendsError,
+    refetch: refreshSuggestedFriends,
+  } = useQuery(queries.GET_SUGGESTED_FRIENDS, {
+    variables: { id: userid },
+  });
 
-    const [sendFriendRequestMutation] = useMutation(queries.SEND_FRIEND_REQUEST);
-    
-    const sendFriendRequest = async (friendid) => {
-        try {
-            await sendFriendRequestMutation({
-                variables: {
-                    userId: userid,
-                    friendId: friendid
-                }
-            });
-            alert("Friend request has been sent!")
-            refreshSuggestedFriends();
-        } catch (error) {
-            console.error('Error sending friend request:', error);
-        }
-    };
+  const [sendFriendRequestMutation] = useMutation(queries.SEND_FRIEND_REQUEST);
 
-    const [handleFriendRequestMutation] = useMutation(queries.HANDLE_FRIEND_REQUEST);
-    
-    const handleFriendRequest = async (friendid, action) => {
-        try {
-            await handleFriendRequestMutation({
-                variables: {
-                    userId: userid,
-                    friendId: friendid,
-                    action: action
-                }
-            });
-            refreshSuggestedFriends();
-            refreshFriendRequestsData();
-            refreshOnlineFriends();
-        } catch (error) {
-            console.error('Error handling friend request:', error);
-        }
-    };
-
-    const [removeFriendMutation] = useMutation(queries.REMOVE_FRIEND);
-    
-    const removeFriendRequest = async (friendid) => {
-        try {
-            await removeFriendMutation({
-                variables: {
-                    userId: userid,
-                    friendId: friendid,
-                }
-            });
-            refreshSuggestedFriends();
-            refreshFriendRequestsData();
-            refreshOnlineFriends();
-        } catch (error) {
-            console.error('Error remove friend:', error);
-        }
-    };
-
-    refreshSuggestedFriends();
-    refreshFriendRequestsData();
-    refreshOnlineFriends();
-
-    if (friendRequestsLoading || onlineFriendsLoading || suggestedFriendsLoading) {
-        return <p>Loading...</p>;
+  const sendFriendRequest = async (friendid) => {
+    try {
+      await sendFriendRequestMutation({
+        variables: {
+          userId: userid,
+          friendId: friendid,
+        },
+      });
+      alert("Friend request has been sent!");
+      refreshSuggestedFriends();
+    } catch (error) {
+      console.error("Error sending friend request:", error);
     }
-    if (friendRequestsError || onlineFriendsError || suggestedFriendsError) {
-        return <p>Error: Please try again</p>;
+  };
+
+  const [handleFriendRequestMutation] = useMutation(
+    queries.HANDLE_FRIEND_REQUEST,
+  );
+
+  const handleFriendRequest = async (friendid, action) => {
+    try {
+      await handleFriendRequestMutation({
+        variables: {
+          userId: userid,
+          friendId: friendid,
+          action: action,
+        },
+      });
+      refreshSuggestedFriends();
+      refreshFriendRequestsData();
+      refreshOnlineFriends();
+    } catch (error) {
+      console.error("Error handling friend request:", error);
     }
+  };
 
-    return (
-        <span id="Social-hub-div">
-            {!props.hideInfo && <button className="info-button" onClick={() => {location.href="/socialhub"}}>i</button>}
-            <h1>SOCIAL HUB</h1>
+  const [removeFriendMutation] = useMutation(queries.REMOVE_FRIEND);
 
-            <h3>Online Friends:</h3>
-            {
-                onlineFriendsData?.getOnlineFriends.online.map((friend, index) => (
-                    <OnlineFriend 
-                        key={index}
-                        name={friend.username}
-                        _id={friend._id}
-                        currentSong={friend.track_name} 
-                        songId={friend.trackid}
-                        removeFriendRequest={removeFriendRequest}
-                        hideInfo={props.hideInfo}
-                        />
-                ))
-            }
+  const removeFriendRequest = async (friendid) => {
+    try {
+      await removeFriendMutation({
+        variables: {
+          userId: userid,
+          friendId: friendid,
+        },
+      });
+      refreshSuggestedFriends();
+      refreshFriendRequestsData();
+      refreshOnlineFriends();
+    } catch (error) {
+      console.error("Error remove friend:", error);
+    }
+  };
 
-            {props.hideInfo && <>
-                <h3>Offline Friends:</h3>
-               {
-                    onlineFriendsData?.getOnlineFriends.offline.map((friend, index) => (
-                        <OfflineFriend 
-                            key={index}
-                            name={friend.username}
-                            _id={friend._id}
-                            removeFriendRequest={removeFriendRequest}
-                            hideInfo={props.hideInfo}
-                        />
-                    ))
-                }</>
-            }
+  refreshSuggestedFriends();
+  refreshFriendRequestsData();
+  refreshOnlineFriends();
 
-            <h3>Incoming Friend Requests:</h3>
-            {
-                friendRequestsData?.getFriendRequests.map((friend, index) => (
-                    <FriendRequest 
-                        key={index}
-                        name={friend.username}
-                        _id={friend._id}
-                        handleFriendRequest={handleFriendRequest}
-                    />
-                ))
-            }
+  if (
+    friendRequestsLoading ||
+    onlineFriendsLoading ||
+    suggestedFriendsLoading
+  ) {
+    return <p>Loading...</p>;
+  }
+  if (friendRequestsError || onlineFriendsError || suggestedFriendsError) {
+    return <p>Error: Please try again</p>;
+  }
 
-            <h3>Suggested Friends:</h3>
-            {
-                suggestedFriendsData?.getSuggestedFriends.map((friend, index) => (
-                    <SuggestedFriend 
-                        key={index}
-                        name={friend.username}
-                        _id={friend._id}
-                        sendFriendRequest={sendFriendRequest}
-                    />
-                ))
-            }
-            <br />
-            <br />
-            <br />
-        </span>
-    )
+  return (
+    <div id="Social-hub-div">
+      {!props.hideInfo && (
+        <button
+          className="info-button"
+          onClick={() => {
+            location.href = "/socialhub";
+          }}
+        >
+          i
+        </button>
+      )}
+      <h1>SOCIAL HUB</h1>
+
+      <h3>Online Friends:</h3>
+      {onlineFriendsData?.getOnlineFriends.online.map((friend, index) => (
+        <OnlineFriend
+          key={index}
+          name={friend.username}
+          _id={friend._id}
+          currentSong={friend.track_name}
+          songId={friend.trackid}
+          removeFriendRequest={removeFriendRequest}
+          hideInfo={props.hideInfo}
+        />
+      ))}
+
+      {props.hideInfo && (
+        <>
+          <h3>Offline Friends:</h3>
+          {onlineFriendsData?.getOnlineFriends.offline.map((friend, index) => (
+            <OfflineFriend
+              key={index}
+              name={friend.username}
+              _id={friend._id}
+              removeFriendRequest={removeFriendRequest}
+              hideInfo={props.hideInfo}
+            />
+          ))}
+        </>
+      )}
+
+      <h3>Incoming Friend Requests:</h3>
+      {friendRequestsData?.getFriendRequests.map((friend, index) => (
+        <FriendRequest
+          key={index}
+          name={friend.username}
+          _id={friend._id}
+          handleFriendRequest={handleFriendRequest}
+        />
+      ))}
+
+      <h3>Suggested Friends:</h3>
+      {suggestedFriendsData?.getSuggestedFriends.map((friend, index) => (
+        <SuggestedFriend
+          key={index}
+          name={friend.username}
+          _id={friend._id}
+          sendFriendRequest={sendFriendRequest}
+        />
+      ))}
+      <br />
+      <br />
+      <br />
+    </div>
+  );
 }
 
 function FriendRequest(props) {
-    return (
-    <span className="friend-request">
-        <span className="request-span"><Link to={`/user/${props._id}`}>{props.name}</Link></span>
-        <span className="request-span"><button className="accept-request" onClick={() => props.handleFriendRequest(props._id, "accept")}>Accept</button></span>
-        <span className="request-span"><button className="decline-request" onClick={() => props.handleFriendRequest(props._id, "reject")}>Reject</button></span>
-        <br/>
-    </span>
-    )
+  return (
+    <div className="friend-request">
+      <div className="request-div">
+        <Link to={`/user/${props._id}`}>{props.name}</Link>
+      </div>
+      <div className="request-div">
+        <button
+          className="accept-request"
+          onClick={() => props.handleFriendRequest(props._id, "accept")}
+        >
+          Accept
+        </button>
+      </div>
+      <div className="request-div">
+        <button
+          className="decline-request"
+          onClick={() => props.handleFriendRequest(props._id, "reject")}
+        >
+          Reject
+        </button>
+      </div>
+      <br />
+    </div>
+  );
 }
 
 function OnlineFriend(props) {
-    const confirmRemoveFriend = () => {
-        if (window.confirm("Are you sure you want to remove this friend?")) {
-            props.removeFriendRequest(props._id);
-        }
-    };
+  const confirmRemoveFriend = () => {
+    if (window.confirm("Are you sure you want to remove this friend?")) {
+      props.removeFriendRequest(props._id);
+    }
+  };
 
-    return (
-        <span className="online-friend friend-request">
-            <span className="request-span"><p><Link to={`/user/${props._id}`}>{props.name}</Link> {` is listening to `} <Link to={`/track/${props.songId}`}>{props.currentSong}</Link></p></span>
-            {props.hideInfo &&             
-                <span className="request-span">
-                    <button className="decline-request" onClick={confirmRemoveFriend}>Remove</button>
-                </span>}
-            <br/>
-        </span>
-    )
+  return (
+    <div className="online-friend friend-request">
+      <div className="request-div">
+        <p>
+          <Link to={`/user/${props._id}`}>{props.name}</Link>{" "}
+          {` is listening to `}{" "}
+          <Link to={`/track/${props.songId}`}>{props.currentSong}</Link>
+        </p>
+      </div>
+      {props.hideInfo && (
+        <div className="request-div">
+          <button className="decline-request" onClick={confirmRemoveFriend}>
+            Remove
+          </button>
+        </div>
+      )}
+      <br />
+    </div>
+  );
 }
 
 function OfflineFriend(props) {
-    const confirmRemoveFriend = () => {
-        if (window.confirm("Are you sure you want to remove this friend?")) {
-            props.removeFriendRequest(props._id);
-        }
-    };
+  const confirmRemoveFriend = () => {
+    if (window.confirm("Are you sure you want to remove this friend?")) {
+      props.removeFriendRequest(props._id);
+    }
+  };
 
-    return (
-        <span className="online-friend friend-request">
-            <span className="request-span"><a><Link to={`/user/${props._id}`}>{props.name}</Link></a></span>
-            {props.hideInfo &&             
-                <span className="request-span">
-                    <button className="decline-request" onClick={confirmRemoveFriend}>Remove</button>
-                </span>}
-            <br/>
-        </span>
-    )
+  return (
+    <div className="online-friend friend-request">
+      <div className="request-div">
+        <a>
+          <Link to={`/user/${props._id}`}>{props.name}</Link>
+        </a>
+      </div>
+      {props.hideInfo && (
+        <div className="request-div">
+          <button className="decline-request" onClick={confirmRemoveFriend}>
+            Remove
+          </button>
+        </div>
+      )}
+      <br />
+    </div>
+  );
 }
 
 function SuggestedFriend(props) {
-    return (
-        <span className="suggested-friend friend-request"> 
-            <span><Link to={`/user/${props._id}`}>{props.name}</Link></span>
-            <span className="request-span"><button onClick={() => props.sendFriendRequest(props._id)}>Send Request</button></span>
-            <br/>
-        </span>
-    )
+  return (
+    <div className="suggested-friend friend-request">
+      <div>
+        <Link to={`/user/${props._id}`}>{props.name}</Link>
+      </div>
+      <div className="request-div">
+        <button onClick={() => props.sendFriendRequest(props._id)}>
+          Send Request
+        </button>
+      </div>
+      <br />
+    </div>
+  );
 }
+

@@ -14,15 +14,15 @@ export function CenterView() {
       <button onClick={toggleCenterView}>Chart/Search</button>
 
       {centerView === "chart" && (
-        <span className="center-span">
+        <div className="center-div">
           <ChartComponent hideInfo={false} />
-        </span>
+        </div>
       )}
 
       {centerView === "search" && (
-        <span className="center-span">
+        <div className="center-div">
           <Search hideInfo={false} />
-        </span>
+        </div>
       )}
     </div>
   );

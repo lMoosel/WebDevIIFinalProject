@@ -5,17 +5,17 @@ import { CenterView } from "./CenterView";
 export function StatsScreen() {
   return (
     <div id="Stat-screen-main-div">
-      <span className="side-span">
+      <div className="side-div">
         <GenreInfo hideInfo={false} />
-      </span>
+      </div>
 
-      <span className="center-span" id="therealcenterspan">
+      <div className="center-div" id="therealcenterdiv">
         <CenterView />
-      </span>
+      </div>
 
-      <span className="side-span">
+      <div className="side-div">
         <SocialHub hideInfo={false} />
-      </span>
+      </div>
     </div>
   );
 }
