@@ -268,7 +268,6 @@ img {
 
 #pfp-div-but-relative {
   position: relative;
-  padding: auto;
 
   left: 0;
 
@@ -341,4 +340,3 @@ img {
   width: 33%;
   height: 100%;
 }
-

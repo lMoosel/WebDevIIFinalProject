@@ -23,7 +23,7 @@ export function Header({ logout }) {
                         </span>
                     }
                     { user.username && 
-                        <span><a id="username-header"><Link to={`/user/${user._id}`}>{user.username}</Link></a></span>
+                        <span><p id="username-header"><Link to={`/user/${user._id}`}>{user.username}</Link></p></span>
                     }
                     <span id="header-buttons">
                         <span id="Login-Logout-button">
