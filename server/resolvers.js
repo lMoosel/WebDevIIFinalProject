@@ -122,9 +122,12 @@ export const resolvers = {
           }
           
           const suggested = await users.find({
-            _id: { $in: friendsFriends, $nin: [new ObjectId(_id), friends] },
+            _id: { $in: friendsFriends, $ne: new ObjectId(_id) },
             friendRequests: { $nin: [_id] }
           }).toArray();
+    
+          const filteredSuggested = suggested.filter(suggestedUser => !user.friendRequests.some
+            ((request) => request === suggestedUser._id.toString()));
 
           const result = filteredSuggested.map((user) => ({
             _id: user._id.toString(),
@@ -140,6 +143,13 @@ export const resolvers = {
               friendRequests: { $nin: [_id] },
             })
             .toArray();
+
+          const filteredSuggested = suggested.filter(
+            (suggestedUser) =>
+              !user.friendRequests.some(
+                (request) => request === suggestedUser._id.toString(),
+              ),
+          );
 
           const result = filteredSuggested.map((user) => ({
             _id: user._id.toString(),
