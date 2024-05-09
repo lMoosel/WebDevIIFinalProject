@@ -101,7 +101,7 @@ export function User(props) {
     friendRequest = true;
   }
 
-  if (user.friendRequests.some((id) => id === friendInfo._id)) {
+  if (userInfo.friendRequests.some((id) => id === friendInfo._id)) {
     acceptRequest = true;
   }
   let userChartData = {

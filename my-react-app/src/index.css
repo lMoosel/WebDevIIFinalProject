@@ -283,18 +283,7 @@ img {
   left: 0;
 
   overflow: hidden;
-
-  width: 4%;
-  height: 150%;
-}
-
-#pfp-div {
-  position: absolute;
-
-  left: 0;
-
-  overflow: hidden;
-
+  top: 15%;
   width: 4%;
   height: 150%;
 }
