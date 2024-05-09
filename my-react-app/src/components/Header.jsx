@@ -18,13 +18,16 @@ export function Header({ logout }) {
                         <div id="pfp-div"><img src="https://upload.wikimedia.org/wikipedia/commons/thumb/b/b5/Windows_10_Default_Profile_Picture.svg/2048px-Windows_10_Default_Profile_Picture.svg.png"></img></div>
                     }
                     { user.username && 
-                        <a id="username-header"><Link to={`/user/${user._id}`}>{user.username}</Link></a>
+                        <p id="username-header"><Link to={`/user/${user._id}`}>{user.username}</Link></p>
                     }
                     <span id="Login-Logout-button">
                         <button onClick={logout}>Logout</button>
                     </span>
                     <span id="Home-button">
-                        <Link to={`/`}>Home</Link>
+                        <button><Link to={`/`}>Home</Link></button>
+                    </span>
+                    <span id="Explain-button">
+                        <button><Link to={`/explain`}>What do all these stats mean?</Link></button>
                     </span>
                 </div>
             }

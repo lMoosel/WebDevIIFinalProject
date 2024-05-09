@@ -44,7 +44,7 @@ export function GenreInfo(props) {
     return (
         <div id="Genre-info-div">
             {!props.hideInfo && <button className="info-button" onClick={() => {location.href="/topcategories"}}>i</button>}
-            <h1>Your Favorites</h1>
+            <h1>YOUR FAVORITES</h1>
 
             <h3>Top Songs:</h3>
             {!tracksLoading && tracksData && tracksData.getSpotifyTopTracks.items.map((song) => (
@@ -73,6 +73,9 @@ export function GenreInfo(props) {
                     <Link to={`/album/${album.id}`}>{album.name}</Link>
                 </div>
             ))}
+            <br />
+            <br />
+            <br />
         </div>
     );
 }

@@ -1,4 +1,5 @@
 import {useQuery, useMutation} from '@apollo/client';
+import { CookiesProvider, useCookies } from 'react-cookie';
 
 import queries from "../graphQL/index.js";
 
@@ -20,6 +21,8 @@ function validatePassword(password) {
 }
 
 function EditUser (props) {
+
+    const [cookies, setCookie] = useCookies(['user']);
 
     let { user } = props;
 
@@ -48,13 +51,16 @@ function EditUser (props) {
                 newPassword
             }
         });
+        let newUserCookie = cookies.user;
+        newUserCookie.email = newEmail;
+        setCookie('user', newUserCookie, { path: '/' });
         newPasswordInput.value = "";
         alert("User has been edited.");
     }
 
     return (
         <div>
-            <h5>Edit User</h5>
+            <h1>Edit User</h1>
             <form className="form" id="editUserForm" onSubmit={onSubmitEditArtist}>
                 <div className='form-group'>
                     <label>
@@ -70,7 +76,7 @@ function EditUser (props) {
                         <input id="editUserNewPasswordInput" required autoFocus={true} type="password" />
                     </label>
                 </div>
-                <button className='button add-button' type='submit'>Submit</button>
+                <button className='button add-button' type='submit'>Edit</button>
                 <button className='button add-button' type='reset'>Cancel</button>
             </form>
         </div>

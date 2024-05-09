@@ -1,4 +1,4 @@
-import { gql } from '@apollo/client';
+import { gql } from "@apollo/client";
 
 const GET_SPOTIFY_AUTH_URL = gql`
   query GetSpotifyAuthUrl {
@@ -7,8 +7,8 @@ const GET_SPOTIFY_AUTH_URL = gql`
 `;
 
 const GET_SPOTIFY_CURRENTLY_PLAYING = gql`
-  query GetSpotifyCurrentlyPlaying ($id: String!) {
-    getSpotifyCurrentlyPlaying (_id: $id) {
+  query GetSpotifyCurrentlyPlaying($id: String!) {
+    getSpotifyCurrentlyPlaying(_id: $id) {
       repeat_state
       shuffle_state
       # timestamp
@@ -28,8 +28,8 @@ const GET_SPOTIFY_CURRENTLY_PLAYING = gql`
 `;
 
 const GET_SPOTIFY_ARTIST = gql`
-  query GetSpotifyArtist ($id: String!, $artistId: String!) {
-    getSpotifyArtist (_id: $id, artistId: $artistId) {
+  query GetSpotifyArtist($id: String!, $artistId: String!) {
+    getSpotifyArtist(_id: $id, artistId: $artistId) {
       external_urls {
         spotify
       }
@@ -54,8 +54,8 @@ const GET_SPOTIFY_ARTIST = gql`
 `;
 
 const GET_SPOTIFY_ALBUM = gql`
-  query GetSpotifyAlbum ($id: String!, $albumId: String!) {
-    getSpotifyAlbum (_id: $id, albumId: $albumId) {
+  query GetSpotifyAlbum($id: String!, $albumId: String!) {
+    getSpotifyAlbum(_id: $id, albumId: $albumId) {
       album_type
       total_tracks
       available_markets
@@ -92,8 +92,8 @@ const GET_SPOTIFY_ALBUM = gql`
 `;
 
 const GET_SPOTIFY_TRACK = gql`
-  query GetSpotifyTrack ($id: String!, $trackId: String!) {
-    getSpotifyTrack (_id: $id, trackId: $trackId) {
+  query GetSpotifyTrack($id: String!, $trackId: String!) {
+    getSpotifyTrack(_id: $id, trackId: $trackId) {
       album {
         id
         name
@@ -146,11 +146,24 @@ const GET_SPOTIFY_PROFILE = gql`
       type
       uri
     }
-  }`;
+  }
+`;
 
-  const GET_SPOTIFY_SEARCH = gql`
-  query Query($id: String!, $query: String!, $limit: Int!, $offset: Int!) {
-    getSpotifySearch(_id: $id, query: $query, limit: $limit, offset: $offset) {
+const GET_SPOTIFY_SEARCH = gql`
+  query Query(
+    $id: String!
+    $query: String!
+    $type: [String!]!
+    $limit: Int!
+    $offset: Int!
+  ) {
+    getSpotifySearch(
+      _id: $id
+      query: $query
+      type: $type
+      limit: $limit
+      offset: $offset
+    ) {
       albums {
         items {
           id
@@ -170,12 +183,17 @@ const GET_SPOTIFY_PROFILE = gql`
         }
       }
     }
-  }`;
+  }
+`;
 
-    
-  const GET_SPOTIFY_TOP_ARTISTS = gql`
+const GET_SPOTIFY_TOP_ARTISTS = gql`
   query Query($id: String!, $timeRange: String!, $offset: Int!, $limit: Int!) {
-    getSpotifyTopArtists(_id: $id, time_range: $timeRange, offset: $offset, limit: $limit) {
+    getSpotifyTopArtists(
+      _id: $id
+      time_range: $timeRange
+      offset: $offset
+      limit: $limit
+    ) {
       href
       items {
         name
@@ -187,11 +205,17 @@ const GET_SPOTIFY_PROFILE = gql`
       previous
       total
     }
-  }`;
+  }
+`;
 
-  const GET_SPOTIFY_TOP_TRACKS = gql`
+const GET_SPOTIFY_TOP_TRACKS = gql`
   query Query($id: String!, $timeRange: String!, $offset: Int!, $limit: Int!) {
-    getSpotifyTopTracks(_id: $id, time_range: $timeRange, offset: $offset, limit: $limit) {
+    getSpotifyTopTracks(
+      _id: $id
+      time_range: $timeRange
+      offset: $offset
+      limit: $limit
+    ) {
       href
       items {
         id
@@ -203,22 +227,25 @@ const GET_SPOTIFY_PROFILE = gql`
       previous
       total
     }
-  }`;
+  }
+`;
 
-  const GET_SPOTIFY_TOP_ALBUMS = gql`
+const GET_SPOTIFY_TOP_ALBUMS = gql`
   query Query($id: String!, $timeRange: String!, $limit: Int!) {
     getSpotifyTopAlbums(_id: $id, time_range: $timeRange, limit: $limit) {
       name
       id
     }
-  }`;
+  }
+`;
 
-  const GET_SPOTIFY_TOP_GENRES = gql`
+const GET_SPOTIFY_TOP_GENRES = gql`
   query Query($id: String!, $timeRange: String!, $limit: Int!) {
     getSpotifyTopGenres(_id: $id, time_range: $timeRange, limit: $limit)
-  }`;
+  }
+`;
 
-  const GET_SPOTIFY_TRACK_AUDIO_FEATURES = gql`
+const GET_SPOTIFY_TRACK_AUDIO_FEATURES = gql`
   query Query($id: String!, $trackId: String!) {
     getSpotifyTrackAudioFeatures(_id: $id, trackId: $trackId) {
       acousticness
@@ -240,9 +267,10 @@ const GET_SPOTIFY_PROFILE = gql`
       uri
       valence
     }
-  }`;
+  }
+`;
 
-  const GET_USER = gql`
+const GET_USER = gql`
   query Query($id: String!) {
     getUser(_id: $id) {
       _id
@@ -254,9 +282,10 @@ const GET_SPOTIFY_PROFILE = gql`
       }
       username
     }
-  }`;
+  }
+`;
 
-  const SEARCH_USERS_BY_NAME = gql`
+const SEARCH_USERS_BY_NAME = gql`
   query Query($query: String!) {
     searchUsersByName(query: $query) {
       _id
@@ -270,9 +299,10 @@ const GET_SPOTIFY_PROFILE = gql`
         width
       }
     }
-  }`;
+  }
+`;
 
-  const GET_USER_STATS = gql`
+const GET_USER_STATS = gql`
   query Query($id: String!) {
     getUserStats(_id: $id) {
       danceability
@@ -289,7 +319,8 @@ const GET_SPOTIFY_PROFILE = gql`
       time_signature
       valence
     }
-  }`;
+  }
+`;
 const GET_SUGGESTED_FRIENDS = gql`
   query Query($id: String!) {
     getSuggestedFriends(_id: $id) {
@@ -299,8 +330,9 @@ const GET_SUGGESTED_FRIENDS = gql`
         url
       }
     }
-  }`;
-  const GET_FRIEND_REQUESTS = gql`
+  }
+`;
+const GET_FRIEND_REQUESTS = gql`
   query Query($id: String!) {
     getFriendRequests(_id: $id) {
       _id
@@ -309,7 +341,8 @@ const GET_SUGGESTED_FRIENDS = gql`
         url
       }
     }
-  }`;
+  }
+`;
 const GET_ONLINE_FRIENDS = gql`
   query Query($id: String!) {
     getOnlineFriends(_id: $id) {
@@ -330,25 +363,57 @@ const GET_ONLINE_FRIENDS = gql`
         }
       }
     }
-  }`;
+  }
+`;
+
+const GET_RELATED_ARTISTS = gql`
+  query Query($id: String!, $artistId: String!) {
+    getSpotifyArtistRelatedArtists(_id: $id, artistId: $artistId) {
+      genres
+      name
+      id
+      popularity
+    }
+  }
+`;
+
+const GET_ARTIST_TOP = gql`
+  query Query($id: String!, $artistId: String!) {
+    getSpotifyArtistTopSongs(_id: $id, artistId: $artistId) {
+      album {
+        id
+        name
+      }
+      artists {
+        id
+        name
+      }
+      id
+      name
+    }
+  }
+`;
+
 const exported = {
-    GET_SPOTIFY_AUTH_URL,
-    GET_SPOTIFY_CURRENTLY_PLAYING,
-    GET_SPOTIFY_ARTIST,
-    GET_SPOTIFY_ALBUM,
-    GET_SPOTIFY_TRACK,
-    GET_SPOTIFY_PROFILE,
-    GET_SPOTIFY_SEARCH,
-    GET_SPOTIFY_TOP_ARTISTS,
-    GET_SPOTIFY_TOP_TRACKS,
-    GET_SPOTIFY_TOP_ALBUMS,
-    GET_SPOTIFY_TOP_GENRES,
-    GET_SPOTIFY_TRACK_AUDIO_FEATURES,
-    GET_USER,
-    GET_USER_STATS,
-    SEARCH_USERS_BY_NAME,
-    GET_SUGGESTED_FRIENDS,
-    GET_FRIEND_REQUESTS,
-    GET_ONLINE_FRIENDS
-}
+  GET_SPOTIFY_AUTH_URL,
+  GET_SPOTIFY_CURRENTLY_PLAYING,
+  GET_SPOTIFY_ARTIST,
+  GET_SPOTIFY_ALBUM,
+  GET_SPOTIFY_TRACK,
+  GET_SPOTIFY_PROFILE,
+  GET_SPOTIFY_SEARCH,
+  GET_SPOTIFY_TOP_ARTISTS,
+  GET_SPOTIFY_TOP_TRACKS,
+  GET_SPOTIFY_TOP_ALBUMS,
+  GET_SPOTIFY_TOP_GENRES,
+  GET_SPOTIFY_TRACK_AUDIO_FEATURES,
+  GET_USER,
+  GET_USER_STATS,
+  SEARCH_USERS_BY_NAME,
+  GET_SUGGESTED_FRIENDS,
+  GET_FRIEND_REQUESTS,
+  GET_ONLINE_FRIENDS,
+  GET_RELATED_ARTISTS,
+  GET_ARTIST_TOP,
+};
 export default exported;

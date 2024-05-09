@@ -99,10 +99,6 @@ export const resolvers = {
     },
     getSuggestedFriends: async (_, { _id }) => {
       try {
-        const cache = await checkCache(`suggestedFriends:${_id}`);
-        if (cache) {
-          return cache;
-        }
         isValidId(_id);
         const users = await usersCollection();
         const user = await users.findOne({ _id: new ObjectId(_id) });
@@ -138,9 +134,6 @@ export const resolvers = {
             username: user.username,
             profile_picture: user.profile_picture,
           }));
-
-          await addToCache(`suggestedFriends:${_id}`, result, 60 * 60);
-
           return result;
         // No friends (suggest everyone)
         } else {
@@ -163,9 +156,6 @@ export const resolvers = {
             username: user.username,
             profile_picture: user.profile_picture,
           }));
-
-          await addToCache(`suggestedFriends:${_id}`, result, 60 * 60);
-
           return result;
         }
       } catch (error) {
@@ -210,7 +200,8 @@ export const resolvers = {
     },
     searchUsersByName: async (_, { query }) => {
       try {
-        validateArgsString([query]);
+        // Commented out to allow search with empty string
+        //validateArgsString([query]);
       } catch (e) {
         throw new GraphQLError(e, errors.BAD_USER_DATA);
       }
@@ -357,6 +348,32 @@ export const resolvers = {
         throw new GraphQLError(error.message, error);
       }
     },
+    getSpotifyArtistTopSongs: async (_, { _id, artistId }) => {
+      try {
+        const response = await get(
+          _id,
+          `getSpotifyArtistTopSongs:${artistId}`,
+          60 * 60 * 24,
+          `https://api.spotify.com/v1/artists/${artistId}/top-tracks`,
+        );
+        return response.tracks;
+      } catch (error) {
+        throw new GraphQLError(error.message, error);
+      }
+    },
+    getSpotifyArtistRelatedArtists: async (_, { _id, artistId }) => {
+      try {
+        const response = await get(
+          _id,
+          `getSpotifyArtistRelatedArtists:${artistId}`,
+          60 * 60 * 24,
+          `https://api.spotify.com/v1/artists/${artistId}/related-artists`,
+        );
+        return response.artists;
+      } catch (error) {
+        throw new GraphQLError(error.message, error);
+      }
+    },
     getSpotifyTrack: async (_, { _id, trackId }) => {
       try {
         const response = await get(
@@ -385,7 +402,8 @@ export const resolvers = {
     },
     getSpotifySearch: async (_, { _id, query, type, limit, offset }) => {
       try {
-        validateArgsString([query]);
+        // Commented out to allow for empty string
+        //validateArgsString([query]);
         verifyLimit(limit);
         verifyOffset(offset);
         verifyType(type);
@@ -712,24 +730,49 @@ export const resolvers = {
           throw new GraphQLError("Could not remove", errors.INTERNAL_ERROR);
         }
 
+        // Update friend requests to get rid of user
+        const friendRequestUsers = await users
+          .find({
+            _id: { $ne: new ObjectId(_id) },
+            friendRequests: { $in: [_id] },
+          })
+          .toArray();
+
+        await Promise.all(friendRequestUsers.map(async (user) => {
+          const potentialFriend = await users.findOneAndUpdate(
+            { _id: user._id },
+            { $pull: { friendsRequests: _id } },
+          );
+        
+          await removeFromCache(`friendRequests:${user._id.toString()}`);
+          await removeFromCache(`user:${user._id.toString()}`);
+        
+          if (!potentialFriend)
+            throw new GraphQLError(
+              "Could not update friendRequests while deleting user",
+              errors.INTERNAL_ERROR,
+            );
+        }));
+          
         // Update friends to get rid of user
-        user.friends.map((friendId) => {
-          const friend = users.findOneAndUpdate(
+        await Promise.all(user.friends.map(async (friendId) => {
+          const friend = await users.findOneAndUpdate(
             { _id: new ObjectId(friendId) },
             { $pull: { friends: _id } },
           );
-
+        
           if (!friend)
             throw new GraphQLError(
               "Could not update friend while deleting user",
               errors.INTERNAL_ERROR,
             );
-        });
+        }));        
 
         await clearUserCache(`spotify:${_id}`);
         await removeFromCache(`active_token:${_id}`);
         await removeFromCache(`getUserStats:${_id}`);
         await removeFromCache(`user:${_id}`);
+
         const ret = {
           _id: user._id.toString(),
           profile_picture: user.profile_picture,
@@ -793,9 +836,6 @@ export const resolvers = {
 
       await removeFromCache(`user:${friendId}`);
       await removeFromCache(`friendRequests:${friendId}`);
-      await removeFromCache(`suggestedFriends:${userId}`);
-      await removeFromCache(`suggestedFriends:${friendId}`);
-
       return "Friend Request Sent";
     },
     handleFriendRequest: async (_, { userId, friendId, action }) => {
@@ -854,10 +894,8 @@ export const resolvers = {
             );
 
           await removeFromCache(`user:${userId}`);
-          await removeFromCache(`suggestedFriends:${userId}`);
           await removeFromCache(`friendRequests:${userId}`);
           await removeFromCache(`user:${friendId}`);
-          await removeFromCache(`suggestedFriends:${friendId}`);
 
           return "Friend request accepted";
         } else if (action === "reject") {
@@ -875,10 +913,8 @@ export const resolvers = {
             );
 
           await removeFromCache(`user:${userId}`);
-          await removeFromCache(`suggestedFriends:${userId}`);
           await removeFromCache(`friendRequests:${userId}`);
           await removeFromCache(`user:${friendId}`);
-          await removeFromCache(`suggestedFriends:${friendId}`);
 
           return "Friend request rejected";
         } else
@@ -929,9 +965,7 @@ export const resolvers = {
           );
 
         await removeFromCache(`user:${userId}`);
-        await removeFromCache(`suggestedFriends:${userId}`);
         await removeFromCache(`user:${friendId}`);
-        await removeFromCache(`suggestedFriends:${friendId}`);
 
         return "Removed friend";
       } catch (error) {

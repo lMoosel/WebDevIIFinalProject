@@ -78,9 +78,6 @@ export function SocialHub(props) {
         return <p>Loading...</p>;
     }
     if (friendRequestsError || onlineFriendsError || suggestedFriendsError) {
-        console.log(friendRequestsError)
-        console.log(onlineFriendsData)
-        console.log(suggestedFriendsError)
         return <p>Error: Please try again</p>;
     }
 
@@ -108,7 +105,7 @@ export function SocialHub(props) {
 
             {props.hideInfo && <>
                 <h3>Offline Friends:</h3>
-    `            {
+               {
                     onlineFriendsData?.getOnlineFriends.offline.map((friend, index) => (
                         <OfflineFriend 
                             key={index}
@@ -144,6 +141,9 @@ export function SocialHub(props) {
                     />
                 ))
             }
+            <br />
+            <br />
+            <br />
         </div>
     )
 }
@@ -185,7 +185,7 @@ function OfflineFriend(props) {
 
     return (
         <div className="online-friend friend-request">
-            <span className="request-span"><a>{`${props.name}`}</a></span>
+            <span className="request-span"><a><Link to={`/user/${props._id}`}>{props.name}</Link></a></span>
             {props.hideInfo &&             
                 <span className="request-span">
                     <button id="decline-request" onClick={confirmRemoveFriend}>Remove</button>
@@ -197,7 +197,7 @@ function OfflineFriend(props) {
 function SuggestedFriend(props) {
     return (
         <div className="suggested-friend friend-request"> 
-            <span><a><Link to={`/user/${props._id}`}>{props.name}</Link></a></span>
+            <span><Link to={`/user/${props._id}`}>{props.name}</Link></span>
             <span className="request-span"><button onClick={() => props.sendFriendRequest(props._id)}>Send Request</button></span>
         </div>
 
