@@ -25,11 +25,9 @@ export function Header({ logout }) {
             </div>
           )}
           {user.username && (
-            <div>
-              <p id="username-header">
-                <Link to={`/user/${user._id}`}>{user.username}</Link>
-              </p>
-            </div>
+            <span id="username-header">
+              <Link to={`/user/${user._id}`}>{user.username}</Link>
+            </span>
           )}
           <div id="header-buttons">
             <div id="Login-Logout-button">
