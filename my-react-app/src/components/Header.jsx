@@ -5,7 +5,7 @@ export function Header({ logout }) {
     
     const [cookies, setCookie, removeCookie] = useCookies(['user']);
     let user = cookies.user;
-    console.log("user: ", user)
+    const navigate = useNavigate()
     return (
         <div id="header">
             {user && 
@@ -29,12 +29,12 @@ export function Header({ logout }) {
                         <span id="Login-Logout-button">
                             <button onClick={logout}>Logout</button>
                         </span>
-                        <span id="Home-button">
-                            <button><Link to={`/`}>Home</Link></button>
-                        </span>
-                        <span id="Explain-button">
-                            <button><Link to={`/explain`}>What do all these stats mean?</Link></button>
-                        </span>
+                        <button id="Home-button" onClick={() => navigate("/")}>
+                            Home
+                        </button>
+                        <button id="Explain-button" onClick={() => navigate("/explain")}>
+                            What Do All These Stats Mean?
+                        </button>
                     </span>
                 </>
             }

@@ -41,12 +41,6 @@ export function User(props) {
         }
     });
 
-    const { data: onlineFriendsData, loading: onlineFriendsLoading, error: onlineFriendsError } = useQuery(queries.GET_ONLINE_FRIENDS, {
-        variables: {
-            id: user._id,
-        }
-    });
-
     const [sendFriendRequestMutation] = useMutation(queries.SEND_FRIEND_REQUEST);
     const sendFriendRequest = async (friendid) => {
         try {
@@ -63,8 +57,8 @@ export function User(props) {
         }
     };
     
-    if (userLoading || friendLoading || userStatsLoading || friendStatsLoading || onlineFriendsLoading) return <p>Loading...</p>;
-    if (userError || friendError || userStatsError || friendStatsError || onlineFriendsError) return <p>404 Error : Please try again</p>;
+    if (userLoading || friendLoading || userStatsLoading || friendStatsLoading) return <p>Loading...</p>;
+    if (userError || friendError || userStatsError || friendStatsError) return <p>404 Error : Please try again</p>;
 
     let userInfo, userStats, friendInfo, friendStats, onlineFriend;
 
@@ -72,7 +66,6 @@ export function User(props) {
     userStats = userStatsData?.getUserStats;
     friendInfo = friendData?.getUser;
     friendStats = friendStatsData?.getUserStats;
-    onlineFriend = onlineFriendsData?.getOnlineFriends.online.find(friend => friend._id === userid);
 
     // Visiting not your own user page
     if (userid !== user._id) {
