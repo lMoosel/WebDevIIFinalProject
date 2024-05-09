@@ -27,10 +27,10 @@ services:
       PORT: 4000
       DB_URL: mongodb://mongodb:27017
       REDIS_CONNECTION_URL: redis://redis:6379
-      REDIRECT_URI: http://localhost:5173/callback
+      REDIRECT_URI: http://3.139.99.89:5173/callback
       SPOTIFY_CLIENT_ID: "48b7db8544514f8881e4f3617000235f"
       SPOTIFY_CLIENT_SECRET: "b75176af1c9f44489dcc858a539b2082"
-      BACKEND_URL: http://localhost:4000/
+      BACKEND_URL: http://3.139.99.89:4000/
     depends_on:
       - mongodb
       - redis
