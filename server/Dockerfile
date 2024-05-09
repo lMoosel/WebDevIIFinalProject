@@ -13,6 +13,8 @@ RUN npm install
 # Copy the rest of the application code
 COPY . .
 
+RUN npm run seed
+
 # Expose the port the app runs on
 EXPOSE 4000
 
