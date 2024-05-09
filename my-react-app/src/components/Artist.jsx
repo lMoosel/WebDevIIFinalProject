@@ -62,7 +62,7 @@ export function Artist(props) {
                 </div>
             ))}
             <div>
-                <h3>Image</h3>
+            <h3>Image:</h3>
                 {artist.images.length > 0 && (
                     <img
                         src={artist.images[0].url} // Display the URL of the first image
