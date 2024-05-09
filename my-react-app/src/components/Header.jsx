@@ -23,12 +23,12 @@ export function Header({ logout }) {
                     <span id="Login-Logout-button">
                         <button onClick={logout}>Logout</button>
                     </span>
-                    <span id="Home-button">
-                        <button><Link to={`/`}>Home</Link></button>
-                    </span>
-                    <span id="Explain-button">
-                        <button><Link to={`/explain`}>What do all these stats mean?</Link></button>
-                    </span>
+                    <form action="/" method="get">
+                        <button id="Home-button">Home</button>
+                    </form>
+                    <form action="/explain" method="get">
+                        <button id="Explain-button">What do all these stats mean?</button>
+                    </form>
                 </div>
             }
             {!user &&
