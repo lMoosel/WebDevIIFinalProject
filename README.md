@@ -9,6 +9,15 @@ cd my-react-app
 npm i
 npm run dev
 
+To run locally using docker use the following commands:
+
+docker compose up --build               This rebuilds the docker images and starts up the docker containers
+
+To seed the database when running with docker run:
+docker ps                               This is used to get the container id of each container we are focused on the webdeviifinalproject-backend container
+docker exec -it <container-id> sh       This opens up the docker shell for the specified container allowing us to run commands
+npm run seed                            This will run inside the docker container seeding the database
+
 When creating an account you can use the following spotify information to authorize with spotify. 
 qel13832@vogco.com
 Pattyhill123$
