@@ -155,9 +155,9 @@ export function SocialHub(props) {
 function FriendRequest(props) {
     return (
     <span className="friend-request">
-        <span className="request-span"><p><Link to={`/user/${props._id}`}>{props.name}</Link></p></span>
-        <span className="request-span"><button id="accept-request" onClick={() => props.handleFriendRequest(props._id, "accept")}>Accept</button></span>
-        <span className="request-span"><button id="decline-request" onClick={() => props.handleFriendRequest(props._id, "reject")}>Reject</button></span>
+        <span className="request-span"><Link to={`/user/${props._id}`}>{props.name}</Link></span>
+        <span className="request-span"><button className="accept-request" onClick={() => props.handleFriendRequest(props._id, "accept")}>Accept</button></span>
+        <span className="request-span"><button className="decline-request" onClick={() => props.handleFriendRequest(props._id, "reject")}>Reject</button></span>
         <br/>
     </span>
     )
@@ -175,7 +175,7 @@ function OnlineFriend(props) {
             <span className="request-span"><p><Link to={`/user/${props._id}`}>{props.name}</Link> {` is listening to `} <Link to={`/track/${props.songId}`}>{props.currentSong}</Link></p></span>
             {props.hideInfo &&             
                 <span className="request-span">
-                    <button id="decline-request" onClick={confirmRemoveFriend}>Remove</button>
+                    <button className="decline-request" onClick={confirmRemoveFriend}>Remove</button>
                 </span>}
             <br/>
         </span>
@@ -194,7 +194,7 @@ function OfflineFriend(props) {
             <span className="request-span"><a><Link to={`/user/${props._id}`}>{props.name}</Link></a></span>
             {props.hideInfo &&             
                 <span className="request-span">
-                    <button id="decline-request" onClick={confirmRemoveFriend}>Remove</button>
+                    <button className="decline-request" onClick={confirmRemoveFriend}>Remove</button>
                 </span>}
             <br/>
         </span>

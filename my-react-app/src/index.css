@@ -140,7 +140,7 @@
   margin: auto;
 }
 
-#accept-request {
+.accept-request {
   display: inline-block;
   background-color: #1db965;
   color: #000000;
@@ -154,7 +154,7 @@
   border-radius: 5px;
 }
 
-#decline-request {
+.decline-request {
   display: inline-block;
   background-color: red;
   color: #000000;
