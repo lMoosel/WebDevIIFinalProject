@@ -85,8 +85,6 @@ export function SocialHub(props) {
         return <p>Error: Please try again</p>;
     }
 
-    console.log(onlineFriendsData)
-
     return (
         <span id="Social-hub-div">
             {!props.hideInfo && <button className="info-button" onClick={() => {location.href="/socialhub"}}>i</button>}
