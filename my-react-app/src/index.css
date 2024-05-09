@@ -314,3 +314,7 @@ img {
   max-height: 100%; /* Adjust max-height as needed */
   overflow-y: auto; /* Enable vertical scrolling */
 }
+
+#therealcenterspan {
+  vertical-align: top;
+}

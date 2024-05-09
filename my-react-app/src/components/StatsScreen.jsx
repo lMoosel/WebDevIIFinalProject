@@ -9,7 +9,7 @@ export function StatsScreen() {
         <GenreInfo hideInfo={false} />
       </span>
 
-      <span className="center-span">
+      <span className="center-span" id="therealcenterspan">
         <CenterView />
       </span>
 
