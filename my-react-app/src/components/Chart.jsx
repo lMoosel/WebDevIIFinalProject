@@ -37,7 +37,8 @@ export function ChartComponent (props) {
     });
 
     let chartData;
-    if (query2Results.data) {
+    if (query2Results.data && query1Results.data.getSpotifyCurrentlyPlaying) {
+        console.log()
         let CPResults = query1Results.data.getSpotifyCurrentlyPlaying;
         let songName = CPResults.item.name;
         let artistName = CPResults.item.artists.map(artist => artist.name).join(', ');
@@ -100,7 +101,7 @@ export function ChartComponent (props) {
             <h1>CHART</h1>
 
             <div style={{ display: 'flex', justifyContent: 'center' }}>
-                {chartData && (
+                {query1Results.data && query2Results && chartData && (
                     <Chart
                         options={chartData.options}
                         series={chartData.series}

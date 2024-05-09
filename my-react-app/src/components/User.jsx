@@ -274,6 +274,9 @@ export function User(props) {
                     </>}
                 </div>
             )}
+        <br />
+        <br />
+        <br />
         </div>
     );
 }

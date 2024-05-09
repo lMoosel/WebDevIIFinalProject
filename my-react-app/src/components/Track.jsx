@@ -114,6 +114,9 @@ export function Track(props) {
                 type="bar"
                 width="700"
             />}
+            <br />
+            <br />
+            <br />
         </div>
     )
 }
