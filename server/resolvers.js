@@ -127,7 +127,7 @@ export const resolvers = {
           }).toArray();
     
           const filteredSuggested = suggested.filter(suggestedUser => !user.friendRequests.some
-            (request => request === suggestedUser._id.toString()));
+            ((request) => request === suggestedUser._id.toString()));
 
           const result = filteredSuggested.map((user) => ({
             _id: user._id.toString(),
