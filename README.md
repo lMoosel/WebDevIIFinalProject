@@ -1,4 +1,4 @@
-Here is the link to our hosted website through AWS: http://3.139.99.89:5173
+Here is the link to our hosted website through AWS: http://3.139.99.89:5173 (Not currently hosted)
 
 To run locally do the following commmands.
 
